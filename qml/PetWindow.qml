@@ -3,10 +3,11 @@ import QtQuick
 Window {
     id: petWindow
 
-    width: 220
-    height: 250
+    width: appController.currentPetWidth > 0 ? appController.currentPetWidth : 220
+    height: appController.currentPetHeight > 0 ? appController.currentPetHeight : 250
     visible: true
     color: "transparent"
+    opacity: appController.petOpacity
     title: qsTr("DeskPal")
     flags: Qt.FramelessWindowHint
            | Qt.Tool
@@ -28,6 +29,12 @@ Window {
         y = Math.max(screen.y, Math.min(y, screen.y + screen.height - height))
     }
 
+    function showSpeech() {
+        speechLabel.text = appController.randomSpeech()
+        speechBubble.opacity = 1
+        speechTimer.restart()
+    }
+
     Connections {
         target: appController
 
@@ -42,8 +49,9 @@ Window {
         }
 
         function onResetPositionRequested() {
-            petWindow.x = 120
-            petWindow.y = 120
+            const position = appController.windowPosition()
+            petWindow.x = position.x
+            petWindow.y = position.y
             petWindow.clampToScreen()
             appController.saveWindowPosition(petWindow.x, petWindow.y)
         }
@@ -54,11 +62,17 @@ Window {
                     | (appController.alwaysOnTop ? Qt.WindowStaysOnTopHint : 0)
             petWindow.show()
         }
+
+        function onCurrentPetChanged() {
+            petWindow.clampToScreen()
+        }
     }
 
     Loader {
         id: petRenderer
         anchors.centerIn: parent
+        scale: appController.currentPetScale > 0 ? appController.currentPetScale : 1.0
+        transformOrigin: Item.Center
         sourceComponent: appController.currentPetType === "3d" || appController.renderMode === "3d" ? pet3DComponent : pet2DComponent
     }
 
@@ -84,6 +98,49 @@ Window {
             renderer: appController.currentPetRenderer
             source: appController.currentPetSource
         }
+    }
+
+    Rectangle {
+        id: speechBubble
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 4
+        width: Math.min(petWindow.width - 16, speechLabel.implicitWidth + 24)
+        height: speechLabel.implicitHeight + 16
+        radius: 12
+        color: "#ffffff"
+        border.color: "#d7dce5"
+        opacity: 0
+        visible: opacity > 0
+
+        Behavior on opacity { NumberAnimation { duration: 180 } }
+
+        Text {
+            id: speechLabel
+            anchors.centerIn: parent
+            width: petWindow.width - 40
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            color: "#1f2937"
+            font.pixelSize: 13
+        }
+
+        Rectangle {
+            width: 12
+            height: 12
+            rotation: 45
+            color: parent.color
+            border.color: parent.border.color
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.bottom
+            anchors.topMargin: -6
+        }
+    }
+
+    Timer {
+        id: speechTimer
+        interval: 2600
+        onTriggered: speechBubble.opacity = 0
     }
 
     MouseArea {
@@ -120,6 +177,7 @@ Window {
                 appController.showContextMenu()
             } else if (mouse.button === Qt.LeftButton) {
                 appController.triggerPetAction("happy", 1600)
+                petWindow.showSpeech()
             }
         }
     }

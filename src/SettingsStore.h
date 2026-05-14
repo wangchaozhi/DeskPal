@@ -17,6 +17,7 @@ public:
     QPoint windowPosition() const;
     void setWindowPosition(const QPoint &position);
     void resetWindowPosition();
+    QPoint defaultWindowPosition() const;
 
     QString language() const;
     void setLanguage(const QString &language);
@@ -26,4 +27,10 @@ public:
 
     QString currentPetId() const;
     void setCurrentPetId(const QString &petId);
+
+    qreal petOpacity() const;
+    void setPetOpacity(qreal opacity);
+
+    bool autoStartEnabled() const;
+    void setAutoStartEnabled(bool enabled);
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QStringList>
 #include <QTimer>
 
 class ActionController : public QObject
@@ -15,6 +16,7 @@ public:
 
     Q_INVOKABLE void triggerAction(const QString &action, int durationMs = 0);
     Q_INVOKABLE void setDragging(bool dragging);
+    void setIdleActions(const QStringList &actions);
 
 signals:
     void currentActionChanged();
@@ -26,6 +28,7 @@ private:
     void restoreIdle();
 
     QString m_currentAction = QStringLiteral("idle");
+    QStringList m_idleActions = {QStringLiteral("happy"), QStringLiteral("sleepy")};
     QTimer m_restoreTimer;
     QTimer m_idleTimer;
     bool m_dragging = false;

@@ -4,10 +4,28 @@
   "type": "3d",
   "renderer": "quick3d",
   "source": "SampleQuick3DPet.qml",
+  "width": 240,
+  "height": 260,
+  "scale": 1.0,
   "actions": {
     "idle": "SampleQuick3DPet.qml",
     "happy": "SampleQuick3DPet.qml",
     "sleepy": "SampleQuick3DPet.qml",
     "dragging": "SampleQuick3DPet.qml"
-  }
+  },
+  "animations": {
+    "idle": "Idle",
+    "happy": "Happy",
+    "sleepy": "Sleep",
+    "dragging": "Drag"
+  },
+  "idleActions": [
+    "happy",
+    "sleepy"
+  ],
+  "speeches": [
+    "Booting up the fun!",
+    "Spinning just for you.",
+    "Three dimensions of company."
+  ]
 }

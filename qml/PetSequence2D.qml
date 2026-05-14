@@ -7,6 +7,7 @@ Item {
     property string action: "idle"
     property var frames: appController.petFrameUrls(petId, action)
     property int frameIndex: 0
+    property int fps: appController.petFps(petId)
 
     onActionChanged: {
         frames = appController.petFrameUrls(petId, action)
@@ -16,6 +17,7 @@ Item {
     onPetIdChanged: {
         frames = appController.petFrameUrls(petId, action)
         frameIndex = 0
+        fps = appController.petFps(petId)
     }
 
     Connections {
@@ -24,6 +26,7 @@ Item {
         function onCurrentPetChanged() {
             root.frames = appController.petFrameUrls(root.petId, root.action)
             root.frameIndex = 0
+            root.fps = appController.petFps(root.petId)
         }
     }
 
@@ -35,7 +38,7 @@ Item {
     }
 
     Timer {
-        interval: 90
+        interval: root.fps > 0 ? Math.max(1000 / root.fps, 16) : 90
         repeat: true
         running: root.frames.length > 1
         onTriggered: root.frameIndex = (root.frameIndex + 1) % root.frames.length

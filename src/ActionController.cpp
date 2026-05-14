@@ -42,6 +42,23 @@ void ActionController::triggerAction(const QString &action, int durationMs)
     }
 }
 
+void ActionController::setIdleActions(const QStringList &actions)
+{
+    QStringList filtered;
+    for (const QString &action : actions) {
+        if (action == QLatin1String(kIdleAction) || action == QLatin1String(kDraggingAction)) {
+            continue;
+        }
+        if (!action.isEmpty() && !filtered.contains(action)) {
+            filtered.append(action);
+        }
+    }
+
+    m_idleActions = filtered.isEmpty()
+            ? QStringList{QString::fromLatin1(kHappyAction), QString::fromLatin1(kSleepyAction)}
+            : filtered;
+}
+
 void ActionController::setDragging(bool dragging)
 {
     if (m_dragging == dragging) {
@@ -75,10 +92,9 @@ void ActionController::scheduleIdleAction()
 
 void ActionController::triggerRandomIdleAction()
 {
-    if (!m_dragging && m_currentAction == QLatin1String(kIdleAction)) {
-        const bool becomeSleepy = QRandomGenerator::global()->bounded(100) < 35;
-        const QString action = QString::fromLatin1(becomeSleepy ? kSleepyAction : kHappyAction);
-        triggerAction(action, 2200);
+    if (!m_dragging && m_currentAction == QLatin1String(kIdleAction) && !m_idleActions.isEmpty()) {
+        const int index = QRandomGenerator::global()->bounded(m_idleActions.size());
+        triggerAction(m_idleActions.at(index), 2200);
     }
 
     scheduleIdleAction();

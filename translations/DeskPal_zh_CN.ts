@@ -86,6 +86,152 @@
         <source>Dragging</source>
         <translation>拖拽</translation>
     </message>
+    <message>
+        <source>Import Pet Pack</source>
+        <translation>导入宠物包</translation>
+    </message>
+    <message>
+        <source>Export Pet Pack</source>
+        <translation>导出宠物包</translation>
+    </message>
+    <message>
+        <source>Opacity</source>
+        <translation>不透明度</translation>
+    </message>
+    <message>
+        <source>Start with system</source>
+        <translation>开机自启</translation>
+    </message>
+    <message>
+        <source>Action Preview</source>
+        <translation>动作预览</translation>
+    </message>
+    <message>
+        <source>Configuration</source>
+        <translation>配置</translation>
+    </message>
+    <message>
+        <source>Editing %1</source>
+        <translation>正在编辑 %1</translation>
+    </message>
+    <message>
+        <source>Built-in pet is read-only</source>
+        <translation>内置宠物只读</translation>
+    </message>
+    <message>
+        <source>Width</source>
+        <translation>宽度</translation>
+    </message>
+    <message>
+        <source>Height</source>
+        <translation>高度</translation>
+    </message>
+    <message>
+        <source>Frame Rate</source>
+        <translation>帧率</translation>
+    </message>
+    <message>
+        <source>Scale %</source>
+        <translation>缩放 %</translation>
+    </message>
+    <message>
+        <source>Action Resources</source>
+        <translation>动作资源</translation>
+    </message>
+    <message>
+        <source>Animation Clips (3D)</source>
+        <translation>动画片段（3D）</translation>
+    </message>
+    <message>
+        <source>Save Configuration</source>
+        <translation>保存配置</translation>
+    </message>
+    <message>
+        <source>Configuration saved</source>
+        <translation>配置已保存</translation>
+    </message>
+    <message>
+        <source>Pet pack imported</source>
+        <translation>宠物包已导入</translation>
+    </message>
+    <message>
+        <source>Pet pack exported</source>
+        <translation>宠物包已导出</translation>
+    </message>
+    <message>
+        <source>Select a pet pack folder</source>
+        <translation>选择宠物包文件夹</translation>
+    </message>
+    <message>
+        <source>Select an export destination</source>
+        <translation>选择导出位置</translation>
+    </message>
+</context>
+<context>
+    <name>AppController</name>
+    <message>
+        <source>Hi there!</source>
+        <translation>你好呀！</translation>
+    </message>
+    <message>
+        <source>Need a break?</source>
+        <translation>要不要休息一下？</translation>
+    </message>
+    <message>
+        <source>I'm right here with you.</source>
+        <translation>我一直在你身边。</translation>
+    </message>
+    <message>
+        <source>Keep going, you've got this!</source>
+        <translation>继续加油，你可以的！</translation>
+    </message>
+    <message>
+        <source>Let's have some fun.</source>
+        <translation>一起放松一下吧。</translation>
+    </message>
+    <message>
+        <source>Unknown pet</source>
+        <translation>未知宠物</translation>
+    </message>
+    <message>
+        <source>Built-in pets cannot be edited</source>
+        <translation>内置宠物无法编辑</translation>
+    </message>
+</context>
+<context>
+    <name>PetCatalog</name>
+    <message>
+        <source>Cannot save a pet without an ID</source>
+        <translation>无法保存缺少 ID 的宠物</translation>
+    </message>
+    <message>
+        <source>Built-in pets cannot be edited</source>
+        <translation>内置宠物无法编辑</translation>
+    </message>
+    <message>
+        <source>Cannot write %1</source>
+        <translation>无法写入 %1</translation>
+    </message>
+    <message>
+        <source>Import folder does not exist</source>
+        <translation>导入文件夹不存在</translation>
+    </message>
+    <message>
+        <source>Selected folder has no pet.json</source>
+        <translation>所选文件夹缺少 pet.json</translation>
+    </message>
+    <message>
+        <source>Failed to copy pet pack</source>
+        <translation>复制宠物包失败</translation>
+    </message>
+    <message>
+        <source>Built-in pets cannot be exported</source>
+        <translation>内置宠物无法导出</translation>
+    </message>
+    <message>
+        <source>Failed to export pet pack</source>
+        <translation>导出宠物包失败</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>

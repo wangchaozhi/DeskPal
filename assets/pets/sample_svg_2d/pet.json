@@ -4,10 +4,22 @@
   "type": "2d",
   "renderer": "svg",
   "source": "idle.svg",
+  "width": 220,
+  "height": 240,
+  "scale": 1.0,
   "actions": {
     "idle": "idle.svg",
     "happy": "happy.svg",
     "sleepy": "sleepy.svg",
     "dragging": "dragging.svg"
-  }
+  },
+  "idleActions": [
+    "happy",
+    "sleepy"
+  ],
+  "speeches": [
+    "Need a hand?",
+    "Take it easy!",
+    "I like this corner of the screen."
+  ]
 }

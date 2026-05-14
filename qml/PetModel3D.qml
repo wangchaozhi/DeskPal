@@ -6,6 +6,7 @@ Item {
 
     property bool pressed: false
     property string action: "idle"
+    property string animationClip: ""
 
     width: 190
     height: 220

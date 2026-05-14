@@ -5,6 +5,7 @@
 #include <QRect>
 #include <QStringList>
 #include <QVariantList>
+#include <QVariantMap>
 
 class ActionController;
 class PetCatalog;
@@ -25,6 +26,13 @@ class AppController : public QObject
     Q_PROPERTY(QString currentPetRenderer READ currentPetRenderer NOTIFY currentPetChanged)
     Q_PROPERTY(QString currentPetSource READ currentPetSource NOTIFY currentPetChanged)
     Q_PROPERTY(QString currentPetBasePath READ currentPetBasePath NOTIFY currentPetChanged)
+    Q_PROPERTY(int currentPetWidth READ currentPetWidth NOTIFY currentPetChanged)
+    Q_PROPERTY(int currentPetHeight READ currentPetHeight NOTIFY currentPetChanged)
+    Q_PROPERTY(int currentPetFps READ currentPetFps NOTIFY currentPetChanged)
+    Q_PROPERTY(qreal currentPetScale READ currentPetScale NOTIFY currentPetChanged)
+    Q_PROPERTY(qreal petOpacity READ petOpacity WRITE setPetOpacity NOTIFY petOpacityChanged)
+    Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
+    Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
     explicit AppController(QObject *parent = nullptr);
@@ -44,6 +52,15 @@ public:
     QString currentPetRenderer() const;
     QString currentPetSource() const;
     QString currentPetBasePath() const;
+    int currentPetWidth() const;
+    int currentPetHeight() const;
+    int currentPetFps() const;
+    qreal currentPetScale() const;
+    qreal petOpacity() const;
+    void setPetOpacity(qreal opacity);
+    bool autoStart() const;
+    void setAutoStart(bool enabled);
+    QString lastError() const;
 
     Q_INVOKABLE QPoint windowPosition() const;
     Q_INVOKABLE QRect availableGeometry(int x, int y) const;
@@ -61,8 +78,14 @@ public:
     Q_INVOKABLE QString petActionSource(const QString &petId, const QString &action) const;
     Q_INVOKABLE QString resolvePetResourceForPet(const QString &petId, const QString &relativePath) const;
     Q_INVOKABLE QStringList petFrameUrls(const QString &petId, const QString &action) const;
+    Q_INVOKABLE int petFps(const QString &petId) const;
+    Q_INVOKABLE QString petAnimationClip(const QString &petId, const QString &action) const;
+    Q_INVOKABLE QString randomSpeech() const;
     Q_INVOKABLE QVariantList petProfiles() const;
     Q_INVOKABLE QVariantList reloadPetProfiles();
+    Q_INVOKABLE bool savePetProfile(const QVariantMap &profile);
+    Q_INVOKABLE bool importPetPack(const QString &folderUrl);
+    Q_INVOKABLE bool exportPetPack(const QString &petId, const QString &folderUrl);
     Q_INVOKABLE void quit();
 
 signals:
@@ -71,15 +94,22 @@ signals:
     void petActionChanged();
     void renderModeChanged();
     void currentPetChanged();
+    void petOpacityChanged();
+    void autoStartChanged();
+    void lastErrorChanged();
     void showRequested();
     void hideRequested();
     void settingsRequested();
     void resetPositionRequested();
 
 private:
+    void applyPetToActionController();
+    void setLastError(const QString &error);
+
     bool m_alwaysOnTop = true;
     QString m_renderMode = QStringLiteral("2d");
     QString m_currentPetId = QStringLiteral("classic_2d");
+    QString m_lastError;
     SettingsStore *m_settings = nullptr;
     ActionController *m_actions = nullptr;
     PetCatalog *m_petCatalog = nullptr;

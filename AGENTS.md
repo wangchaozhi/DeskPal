@@ -104,6 +104,13 @@ struct PetProfile {
     QString source;
     QString basePath;
     QHash<QString, QString> actions;
+    QHash<QString, QString> animations;  // 3D 动作 -> 动画片段名
+    QStringList idleActions;             // 随机 idle 动作池
+    QStringList speeches;                // 语音气泡文案
+    int width = 0;                       // 窗口宽度，0 表示用默认
+    int height = 0;                      // 窗口高度，0 表示用默认
+    int fps = 0;                         // png-sequence 帧率，0 表示用默认
+    qreal scale = 1.0;                   // 渲染缩放
 };
 ```
 
@@ -122,14 +129,27 @@ assets/pets/<pet_id>/pet.json
   "type": "2d",
   "renderer": "png-sequence",
   "source": "idle",
+  "width": 220,
+  "height": 240,
+  "fps": 12,
+  "scale": 1.0,
   "actions": {
     "idle": "idle",
     "happy": "happy",
     "sleepy": "sleepy",
     "dragging": "dragging"
-  }
+  },
+  "animations": {
+    "idle": "Idle",
+    "happy": "Happy"
+  },
+  "idleActions": ["happy", "sleepy"],
+  "speeches": ["Hi there!", "Need a break?"]
 }
 ```
+
+`width`/`height`/`fps`/`scale`/`animations`/`idleActions`/`speeches` 均为可选字段。
+配置面板可直接编辑外部宠物并写回 `pet.json`，内置宠物只读。
 
 更多设计见：
 
@@ -264,10 +284,19 @@ git diff --stat
 
 ## 当前后续方向
 
+已完成：
+
+- 外部宠物资源校验和缺失提示。
+- 配置面板第二阶段 2D 编辑、保存 `pet.json`。
+- 配置面板第三阶段动作到动画片段映射（数据层）。
+- `png-sequence` 帧率配置。
+- 示例宠物包。
+- 宠物包导入 / 导出。
+- 桌宠不透明度、Windows 开机自启、语音气泡、可配置随机 idle 动作。
+
 建议优先级：
 
-1. 为外部宠物增加资源校验和错误占位 UI。
-2. 继续完善宠物配置面板的 2D/3D 编辑能力。
-3. 为 GLB/GLTF 接入动画片段映射。
-4. 为 `png-sequence` 增加帧率配置。
-5. 增加简单示例宠物包，方便测试扫描逻辑。
+1. 3D 编辑：模型旋转/位置、相机距离、灯光参数、骨骼动画预览。
+2. GLB/GLTF 运行时动画的实际播放（目前仅完成片段名映射）。
+3. 更完整的资源校验规则（尺寸、格式、动画片段是否存在）。
+4. 配置面板内置示例宠物包一键生成。

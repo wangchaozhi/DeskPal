@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QRandomGenerator>
 #include <QUrl>
 #include <QScreen>
 #include <QVariantMap>
@@ -140,9 +141,26 @@ AppController::AppController(QObject *parent)
     connect(m_tray, &TrayController::settingsRequested, this, &AppController::settingsRequested);
     connect(m_tray, &TrayController::quitRequested, this, &AppController::quit);
     connect(m_actions, &ActionController::currentActionChanged, this, &AppController::petActionChanged);
+
+    applyPetToActionController();
 }
 
 AppController::~AppController() = default;
+
+void AppController::applyPetToActionController()
+{
+    m_actions->setIdleActions(m_petCatalog->petById(m_currentPetId).idleActions);
+}
+
+void AppController::setLastError(const QString &error)
+{
+    if (m_lastError == error) {
+        return;
+    }
+
+    m_lastError = error;
+    emit lastErrorChanged();
+}
 
 bool AppController::alwaysOnTop() const
 {
@@ -220,6 +238,7 @@ void AppController::setCurrentPetId(const QString &petId)
     const PetProfile pet = m_petCatalog->petById(m_currentPetId);
     m_settings->setCurrentPetId(m_currentPetId);
     m_tray->setCurrentPet(m_currentPetId);
+    applyPetToActionController();
     emit currentPetChanged();
     setRenderMode(pet.type);
 }
@@ -247,6 +266,67 @@ QString AppController::currentPetSource() const
 QString AppController::currentPetBasePath() const
 {
     return m_petCatalog->petById(m_currentPetId).basePath;
+}
+
+int AppController::currentPetWidth() const
+{
+    return m_petCatalog->petById(m_currentPetId).width;
+}
+
+int AppController::currentPetHeight() const
+{
+    return m_petCatalog->petById(m_currentPetId).height;
+}
+
+int AppController::currentPetFps() const
+{
+    return m_petCatalog->petById(m_currentPetId).fps;
+}
+
+qreal AppController::currentPetScale() const
+{
+    return m_petCatalog->petById(m_currentPetId).scale;
+}
+
+qreal AppController::petOpacity() const
+{
+    return m_settings->petOpacity();
+}
+
+void AppController::setPetOpacity(qreal opacity)
+{
+    if (opacity < 0.2) {
+        opacity = 0.2;
+    } else if (opacity > 1.0) {
+        opacity = 1.0;
+    }
+
+    if (qFuzzyCompare(m_settings->petOpacity(), opacity)) {
+        return;
+    }
+
+    m_settings->setPetOpacity(opacity);
+    emit petOpacityChanged();
+}
+
+bool AppController::autoStart() const
+{
+    return m_settings->autoStartEnabled();
+}
+
+void AppController::setAutoStart(bool enabled)
+{
+    if (m_settings->autoStartEnabled() == enabled) {
+        return;
+    }
+
+    m_settings->setAutoStartEnabled(enabled);
+    emit autoStartChanged();
+}
+
+QString AppController::lastError() const
+{
+    return m_lastError;
 }
 
 QPoint AppController::windowPosition() const
@@ -386,6 +466,32 @@ QStringList AppController::petFrameUrls(const QString &petId, const QString &act
     return frameUrls;
 }
 
+int AppController::petFps(const QString &petId) const
+{
+    return m_petCatalog->petById(petId).fps;
+}
+
+QString AppController::petAnimationClip(const QString &petId, const QString &action) const
+{
+    return m_petCatalog->petById(petId).animations.value(action);
+}
+
+QString AppController::randomSpeech() const
+{
+    QStringList phrases = m_petCatalog->petById(m_currentPetId).speeches;
+    if (phrases.isEmpty()) {
+        phrases = {
+            tr("Hi there!"),
+            tr("Need a break?"),
+            tr("I'm right here with you."),
+            tr("Keep going, you've got this!"),
+            tr("Let's have some fun."),
+        };
+    }
+
+    return phrases.at(QRandomGenerator::global()->bounded(phrases.size()));
+}
+
 QVariantList AppController::petProfiles() const
 {
     QVariantList profiles;
@@ -398,6 +504,13 @@ QVariantList AppController::petProfiles() const
         profile.insert(QStringLiteral("renderer"), pet.renderer);
         profile.insert(QStringLiteral("source"), pet.source);
         profile.insert(QStringLiteral("basePath"), pet.basePath);
+        profile.insert(QStringLiteral("width"), pet.width);
+        profile.insert(QStringLiteral("height"), pet.height);
+        profile.insert(QStringLiteral("fps"), pet.fps);
+        profile.insert(QStringLiteral("scale"), pet.scale);
+        profile.insert(QStringLiteral("idleActions"), pet.idleActions);
+        profile.insert(QStringLiteral("speeches"), pet.speeches);
+        profile.insert(QStringLiteral("editable"), !pet.basePath.isEmpty());
 
         QStringList actionNames = pet.actions.keys();
         actionNames.sort();
@@ -407,6 +520,13 @@ QVariantList AppController::petProfiles() const
         }
         profile.insert(QStringLiteral("actions"), actions);
         profile.insert(QStringLiteral("actionText"), actionNames.join(QStringLiteral(", ")));
+
+        QVariantMap animations;
+        for (auto it = pet.animations.constBegin(); it != pet.animations.constEnd(); ++it) {
+            animations.insert(it.key(), it.value());
+        }
+        profile.insert(QStringLiteral("animations"), animations);
+
         profile.insert(QStringLiteral("isValid"), issues.isEmpty());
         profile.insert(QStringLiteral("issueText"), issues.isEmpty() ? tr("Ready") : issues.join(QStringLiteral("\n")));
         profiles.append(profile);
@@ -423,7 +543,117 @@ QVariantList AppController::reloadPetProfiles()
     }
     m_tray->setPets(m_petCatalog->pets());
     m_tray->setCurrentPet(m_currentPetId);
+    applyPetToActionController();
     return petProfiles();
+}
+
+bool AppController::savePetProfile(const QVariantMap &profile)
+{
+    const QString petId = profile.value(QStringLiteral("id")).toString().trimmed();
+    if (petId.isEmpty() || !m_petCatalog->contains(petId)) {
+        setLastError(tr("Unknown pet"));
+        return false;
+    }
+
+    PetProfile pet = m_petCatalog->petById(petId);
+    if (pet.basePath.isEmpty()) {
+        setLastError(tr("Built-in pets cannot be edited"));
+        return false;
+    }
+
+    if (profile.contains(QStringLiteral("name"))) {
+        const QString name = profile.value(QStringLiteral("name")).toString().trimmed();
+        if (!name.isEmpty()) {
+            pet.name = name;
+        }
+    }
+    if (profile.contains(QStringLiteral("renderer"))) {
+        pet.renderer = profile.value(QStringLiteral("renderer")).toString().trimmed().toLower();
+    }
+    if (profile.contains(QStringLiteral("source"))) {
+        pet.source = profile.value(QStringLiteral("source")).toString().trimmed();
+    }
+    if (profile.contains(QStringLiteral("width"))) {
+        pet.width = profile.value(QStringLiteral("width")).toInt();
+    }
+    if (profile.contains(QStringLiteral("height"))) {
+        pet.height = profile.value(QStringLiteral("height")).toInt();
+    }
+    if (profile.contains(QStringLiteral("fps"))) {
+        pet.fps = profile.value(QStringLiteral("fps")).toInt();
+    }
+    if (profile.contains(QStringLiteral("scale"))) {
+        const qreal scale = profile.value(QStringLiteral("scale")).toReal();
+        pet.scale = scale > 0.0 ? scale : 1.0;
+    }
+    if (profile.contains(QStringLiteral("actions"))) {
+        const QVariantMap actions = profile.value(QStringLiteral("actions")).toMap();
+        pet.actions.clear();
+        for (auto it = actions.constBegin(); it != actions.constEnd(); ++it) {
+            const QString value = it.value().toString().trimmed();
+            if (!value.isEmpty()) {
+                pet.actions.insert(it.key(), value);
+            }
+        }
+    }
+    if (profile.contains(QStringLiteral("animations"))) {
+        const QVariantMap animations = profile.value(QStringLiteral("animations")).toMap();
+        pet.animations.clear();
+        for (auto it = animations.constBegin(); it != animations.constEnd(); ++it) {
+            const QString value = it.value().toString().trimmed();
+            if (!value.isEmpty()) {
+                pet.animations.insert(it.key(), value);
+            }
+        }
+    }
+    if (profile.contains(QStringLiteral("idleActions"))) {
+        pet.idleActions = profile.value(QStringLiteral("idleActions")).toStringList();
+    }
+    if (profile.contains(QStringLiteral("speeches"))) {
+        pet.speeches = profile.value(QStringLiteral("speeches")).toStringList();
+    }
+
+    QString error;
+    if (!m_petCatalog->saveProfile(pet, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    reloadPetProfiles();
+    if (m_currentPetId == petId) {
+        applyPetToActionController();
+        emit currentPetChanged();
+    }
+    setLastError(QString());
+    return true;
+}
+
+bool AppController::importPetPack(const QString &folderUrl)
+{
+    const QString localPath = QUrl(folderUrl).isLocalFile() ? QUrl(folderUrl).toLocalFile() : folderUrl;
+    QString error;
+    if (!m_petCatalog->importPetPack(localPath, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    m_tray->setPets(m_petCatalog->pets());
+    m_tray->setCurrentPet(m_currentPetId);
+    setLastError(QString());
+    return true;
+}
+
+bool AppController::exportPetPack(const QString &petId, const QString &folderUrl)
+{
+    const QString localPath = QUrl(folderUrl).isLocalFile() ? QUrl(folderUrl).toLocalFile() : folderUrl;
+    QString error;
+    if (!m_petCatalog->exportPetPack(petId, localPath, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    setLastError(QString());
+    return true;
 }
 
 void AppController::quit()

@@ -9,6 +9,7 @@ Item {
     property string petId: appController.currentPetId
     property string renderer: "quick3d"
     property string source: ""
+    property string animationClip: appController.petAnimationClip(petId, action)
 
     width: 190
     height: 220
@@ -33,6 +34,9 @@ Item {
                 }
                 if ("action" in item) {
                     item.action = Qt.binding(() => root.action)
+                }
+                if ("animationClip" in item) {
+                    item.animationClip = Qt.binding(() => root.animationClip)
                 }
             }
         }
@@ -74,8 +78,14 @@ Item {
                 }
 
                 Model {
+                    id: petModel
                     source: appController.resolvePetResourceForPet(root.petId, root.source)
                     scale: Qt.vector3d(1, 1, 1)
+
+                    // Animation clip name mapped from pet.json "animations".
+                    // Quick3D QML pets read it via the animationClip property;
+                    // raw GLB/GLTF playback hooks onto this value.
+                    property string activeClip: root.animationClip
                 }
             }
         }
