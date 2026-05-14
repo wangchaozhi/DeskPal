@@ -4,7 +4,7 @@ setlocal
 set "ROOT_DIR=%~dp0"
 set "ROOT_DIR=%ROOT_DIR:~0,-1%"
 set "BUILD_DIR=%ROOT_DIR%\build-vs"
-set "APP_EXE=%BUILD_DIR%\Debug\DeskPal.exe"
+set "APP_EXE=%BUILD_DIR%\bin\Debug\DeskPal.exe"
 
 if not defined CMAKE_EXE (
     for /f "delims=" %%C in ('where cmake.exe 2^>nul') do if not defined CMAKE_EXE set "CMAKE_EXE=%%C"

@@ -4,8 +4,8 @@ setlocal
 set "ROOT_DIR=%~dp0"
 set "ROOT_DIR=%ROOT_DIR:~0,-1%"
 set "BUILD_DIR=%ROOT_DIR%\build-vs"
-set "DEPLOY_DIR=%BUILD_DIR%\Release"
-set "APP_EXE=%BUILD_DIR%\Release\DeskPal.exe"
+set "DEPLOY_DIR=%BUILD_DIR%\bin\Release"
+set "APP_EXE=%BUILD_DIR%\bin\Release\DeskPal.exe"
 
 if not defined QT_PREFIX if exist "E:\Qt\6.11.1\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake" set "QT_PREFIX=E:\Qt\6.11.1\msvc2022_64"
 if not defined QT_PREFIX if exist "E:\qt\6.11.1\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake" set "QT_PREFIX=E:\qt\6.11.1\msvc2022_64"

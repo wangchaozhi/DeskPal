@@ -77,6 +77,8 @@ deploy-vs-release.bat
 
 The deployment scripts scan only the source `qml` directory and remove stale deployed QML output before running `windeployqt`.
 
+Visual Studio builds place executables under `build-vs\bin\Debug` and `build-vs\bin\Release`.
+
 ## CI Release
 
 GitHub Actions can build and publish cross-platform release assets manually.
