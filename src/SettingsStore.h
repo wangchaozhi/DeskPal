@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QString>
 
 class SettingsStore : public QObject
 {
@@ -16,4 +17,7 @@ public:
     QPoint windowPosition() const;
     void setWindowPosition(const QPoint &position);
     void resetWindowPosition();
+
+    QString language() const;
+    void setLanguage(const QString &language);
 };

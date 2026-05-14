@@ -5,7 +5,7 @@ project(DeskPal VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Quick Widgets LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -17,6 +17,8 @@ qt_add_executable(DeskPal
     src/SettingsStore.h
     src/TrayController.cpp
     src/TrayController.h
+    src/TranslationManager.cpp
+    src/TranslationManager.h
 )
 
 qt_add_qml_module(DeskPal
@@ -25,6 +27,13 @@ qt_add_qml_module(DeskPal
         Main.qml
         qml/PetWindow.qml
         qml/PetBody.qml
+)
+
+qt_add_translations(DeskPal
+    TS_FILES
+        translations/DeskPal_zh_CN.ts
+    RESOURCE_PREFIX
+        /i18n
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

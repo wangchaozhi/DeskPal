@@ -17,6 +17,7 @@ This project uses Qt 6, Qt Quick, and Qt Widgets:
 - Build system: CMake
 - C++ standard: C++20
 - Native integration: system tray and settings via C++
+- Runtime language switching: system, English, and Simplified Chinese
 
 See `docs/desktop-pet-tech-plan.md` for the desktop pet technical plan.
 

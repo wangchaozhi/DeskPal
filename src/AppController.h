@@ -6,11 +6,13 @@
 
 class SettingsStore;
 class TrayController;
+class TranslationManager;
 
 class AppController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY alwaysOnTopChanged)
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
 
 public:
     explicit AppController(QObject *parent = nullptr);
@@ -18,6 +20,8 @@ public:
 
     bool alwaysOnTop() const;
     void setAlwaysOnTop(bool enabled);
+    QString language() const;
+    void setLanguage(const QString &language);
 
     Q_INVOKABLE QPoint windowPosition() const;
     Q_INVOKABLE QRect availableGeometry(int x, int y) const;
@@ -30,6 +34,7 @@ public:
 
 signals:
     void alwaysOnTopChanged();
+    void languageChanged();
     void showRequested();
     void hideRequested();
     void resetPositionRequested();
@@ -37,5 +42,6 @@ signals:
 private:
     bool m_alwaysOnTop = true;
     SettingsStore *m_settings = nullptr;
+    TranslationManager *m_translations = nullptr;
     TrayController *m_tray = nullptr;
 };

@@ -1,6 +1,7 @@
 #include "TrayController.h"
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QCursor>
 #include <QIcon>
@@ -29,6 +30,23 @@ void TrayController::setAlwaysOnTop(bool enabled)
     m_alwaysOnTopAction->setChecked(enabled);
 }
 
+void TrayController::setLanguage(const QString &language)
+{
+    QAction *targetAction = m_systemLanguageAction;
+    if (language == QStringLiteral("en")) {
+        targetAction = m_englishLanguageAction;
+    } else if (language == QStringLiteral("zh_CN")) {
+        targetAction = m_chineseLanguageAction;
+    }
+
+    if (targetAction) {
+        const QSignalBlocker blocker(m_languageActionGroup);
+        targetAction->setChecked(true);
+    }
+
+    retranslate();
+}
+
 void TrayController::showContextMenu()
 {
     if (m_trayMenu) {
@@ -42,26 +60,48 @@ void TrayController::createMenu()
 
     m_trayMenu = new QMenu();
 
-    m_showAction = m_trayMenu->addAction(QStringLiteral("Show Pet"));
+    m_showAction = m_trayMenu->addAction(QString());
     connect(m_showAction, &QAction::triggered, this, &TrayController::showRequested);
 
-    m_hideAction = m_trayMenu->addAction(QStringLiteral("Hide Pet"));
+    m_hideAction = m_trayMenu->addAction(QString());
     connect(m_hideAction, &QAction::triggered, this, &TrayController::hideRequested);
 
-    m_alwaysOnTopAction = m_trayMenu->addAction(QStringLiteral("Always on Top"));
+    m_alwaysOnTopAction = m_trayMenu->addAction(QString());
     m_alwaysOnTopAction->setCheckable(true);
     connect(m_alwaysOnTopAction, &QAction::toggled, this, &TrayController::alwaysOnTopToggled);
 
+    m_languageMenu = m_trayMenu->addMenu(QString());
+    m_languageActionGroup = new QActionGroup(this);
+    m_languageActionGroup->setExclusive(true);
+
+    m_systemLanguageAction = m_languageMenu->addAction(QString());
+    m_systemLanguageAction->setCheckable(true);
+    m_systemLanguageAction->setData(QStringLiteral("system"));
+    m_languageActionGroup->addAction(m_systemLanguageAction);
+
+    m_englishLanguageAction = m_languageMenu->addAction(QString());
+    m_englishLanguageAction->setCheckable(true);
+    m_englishLanguageAction->setData(QStringLiteral("en"));
+    m_languageActionGroup->addAction(m_englishLanguageAction);
+
+    m_chineseLanguageAction = m_languageMenu->addAction(QString());
+    m_chineseLanguageAction->setCheckable(true);
+    m_chineseLanguageAction->setData(QStringLiteral("zh_CN"));
+    m_languageActionGroup->addAction(m_chineseLanguageAction);
+
+    connect(m_languageActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
+        emit languageChanged(action->data().toString());
+    });
+
     m_trayMenu->addSeparator();
 
-    auto *resetAction = m_trayMenu->addAction(QStringLiteral("Reset Position"));
-    connect(resetAction, &QAction::triggered, this, &TrayController::resetPositionRequested);
+    m_resetAction = m_trayMenu->addAction(QString());
+    connect(m_resetAction, &QAction::triggered, this, &TrayController::resetPositionRequested);
 
-    auto *quitAction = m_trayMenu->addAction(QStringLiteral("Quit"));
-    connect(quitAction, &QAction::triggered, this, &TrayController::quitRequested);
+    m_quitAction = m_trayMenu->addAction(QString());
+    connect(m_quitAction, &QAction::triggered, this, &TrayController::quitRequested);
 
     m_trayIcon.reset(new QSystemTrayIcon(icon));
-    m_trayIcon->setToolTip(QStringLiteral("DeskPal"));
     m_trayIcon->setContextMenu(m_trayMenu);
     connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
@@ -69,5 +109,20 @@ void TrayController::createMenu()
         }
     });
 
+    retranslate();
     m_trayIcon->show();
+}
+
+void TrayController::retranslate()
+{
+    m_showAction->setText(tr("Show Pet"));
+    m_hideAction->setText(tr("Hide Pet"));
+    m_alwaysOnTopAction->setText(tr("Always on Top"));
+    m_languageMenu->setTitle(tr("Language"));
+    m_systemLanguageAction->setText(tr("System"));
+    m_englishLanguageAction->setText(tr("English"));
+    m_chineseLanguageAction->setText(tr("Simplified Chinese"));
+    m_resetAction->setText(tr("Reset Position"));
+    m_quitAction->setText(tr("Quit"));
+    m_trayIcon->setToolTip(tr("DeskPal"));
 }

@@ -28,6 +28,7 @@ Current main files:
 - `src/AppController.h/.cpp`: QML-facing facade and application command coordinator.
 - `src/SettingsStore.h/.cpp`: persisted application settings.
 - `src/TrayController.h/.cpp`: system tray icon and native context menu.
+- `src/TranslationManager.h/.cpp`: Qt and application translation loading.
 - `Main.qml`: root QML entry.
 - `qml/PetWindow.qml`: transparent desktop window and interactions.
 - `qml/PetBody.qml`: placeholder pet visual and idle animation.
@@ -41,6 +42,7 @@ Current main files:
 - Save and restore the last window position.
 - Native right-click menu with topmost, hide, reset position, and quit.
 - System tray menu with show, hide, topmost, reset position, and quit.
+- Runtime language selection with system, English, and Simplified Chinese options.
 - Debug and Release Visual Studio build scripts.
 - Debug and Release deployment scripts using `windeployqt`.
 

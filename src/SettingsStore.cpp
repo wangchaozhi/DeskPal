@@ -8,8 +8,10 @@ constexpr auto kSettingsOrg = "DeskPal";
 constexpr auto kSettingsApp = "DeskPal";
 constexpr auto kWindowPosition = "window/position";
 constexpr auto kAlwaysOnTop = "window/alwaysOnTop";
+constexpr auto kLanguage = "ui/language";
 constexpr auto kDefaultWindowPositionX = 120;
 constexpr auto kDefaultWindowPositionY = 120;
+constexpr auto kDefaultLanguage = "system";
 } // namespace
 
 SettingsStore::SettingsStore(QObject *parent)
@@ -47,4 +49,16 @@ void SettingsStore::resetWindowPosition()
 {
     QSettings settings;
     settings.remove(kWindowPosition);
+}
+
+QString SettingsStore::language() const
+{
+    QSettings settings;
+    return settings.value(kLanguage, QString::fromLatin1(kDefaultLanguage)).toString();
+}
+
+void SettingsStore::setLanguage(const QString &language)
+{
+    QSettings settings;
+    settings.setValue(kLanguage, language);
 }

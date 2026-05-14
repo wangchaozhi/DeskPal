@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     AppController appController;
     engine.rootContext()->setContextProperty("appController", &appController);
+    QObject::connect(&appController, &AppController::languageChanged, &engine, &QQmlApplicationEngine::retranslate);
 
     QObject::connect(
         &engine,
