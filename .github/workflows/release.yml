@@ -103,7 +103,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/Qt
-          key: qt-v2-${{ runner.os }}-${{ env.QT_VERSION }}-${{ matrix.qt_arch }}-${{ matrix.qt_dir }}
+          key: qt-v3-quick3d-${{ runner.os }}-${{ env.QT_VERSION }}-${{ matrix.qt_arch }}-${{ matrix.qt_dir }}
 
       - name: Install Qt
         if: steps.cache-qt.outputs.cache-hit != 'true'
@@ -111,7 +111,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install aqtinstall
-          python -m aqt install-qt "${{ matrix.aqt_host }}" desktop "${QT_VERSION}" "${{ matrix.qt_arch }}" -O "${RUNNER_TEMP}/Qt"
+          python -m aqt install-qt "${{ matrix.aqt_host }}" desktop "${QT_VERSION}" "${{ matrix.qt_arch }}" -O "${RUNNER_TEMP}/Qt" --modules qtquick3d
 
       - name: Configure Qt environment
         shell: bash
@@ -155,6 +155,7 @@ jobs:
           Copy-Item $exe.FullName $deployDir
           Copy-Item README.md $deployDir
           Copy-Item docs $deployDir -Recurse
+          Copy-Item assets $deployDir -Recurse
           windeployqt --release --qmldir "$PWD\qml" "$deployDir\${env:APP_NAME}.exe"
 
           Compress-Archive -Path "$deployDir\*" -DestinationPath "$packageRoot\${{ matrix.asset_name }}.zip" -Force
@@ -179,6 +180,7 @@ jobs:
           cp -R "${app_path}" "${dmg_root}/"
           cp README.md "${dmg_root}/"
           cp -R docs "${dmg_root}/"
+          cp -R assets "${dmg_root}/"
 
           hdiutil create \
             -volname "DeskPal" \
@@ -200,6 +202,7 @@ jobs:
           fi
 
           cp "${exe_path}" "AppDir/usr/bin/${APP_NAME}"
+          cp -R assets "AppDir/usr/bin/assets"
           cp assets/icons/DeskPal.svg "AppDir/usr/share/icons/hicolor/scalable/apps/DeskPal.svg"
           cp README.md "AppDir/usr/share/doc/${APP_NAME}/"
           cp -R docs "AppDir/usr/share/doc/${APP_NAME}/"
