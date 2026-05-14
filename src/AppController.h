@@ -3,11 +3,9 @@
 #include <QObject>
 #include <QPoint>
 #include <QRect>
-#include <QScopedPointer>
-#include <QSystemTrayIcon>
 
-class QAction;
-class QMenu;
+class SettingsStore;
+class TrayController;
 
 class AppController : public QObject
 {
@@ -37,13 +35,7 @@ signals:
     void resetPositionRequested();
 
 private:
-    void createTrayIcon();
-    void updateTrayActions();
-
     bool m_alwaysOnTop = true;
-    QScopedPointer<QSystemTrayIcon> m_trayIcon;
-    QMenu *m_trayMenu = nullptr;
-    QAction *m_showAction = nullptr;
-    QAction *m_hideAction = nullptr;
-    QAction *m_alwaysOnTopAction = nullptr;
+    SettingsStore *m_settings = nullptr;
+    TrayController *m_tray = nullptr;
 };

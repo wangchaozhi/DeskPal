@@ -13,6 +13,10 @@ qt_add_executable(DeskPal
     main.cpp
     src/AppController.cpp
     src/AppController.h
+    src/SettingsStore.cpp
+    src/SettingsStore.h
+    src/TrayController.cpp
+    src/TrayController.h
 )
 
 qt_add_qml_module(DeskPal

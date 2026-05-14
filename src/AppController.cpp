@@ -1,38 +1,28 @@
 #include "AppController.h"
 
-#include <QAction>
-#include <QApplication>
-#include <QCursor>
-#include <QGuiApplication>
-#include <QIcon>
-#include <QMenu>
-#include <QScreen>
-#include <QSettings>
-#include <QStyle>
+#include "SettingsStore.h"
+#include "TrayController.h"
 
-namespace {
-constexpr auto kSettingsOrg = "DeskPal";
-constexpr auto kSettingsApp = "DeskPal";
-constexpr auto kWindowPosition = "window/position";
-constexpr auto kAlwaysOnTop = "window/alwaysOnTop";
-} // namespace
+#include <QApplication>
+#include <QGuiApplication>
+#include <QScreen>
 
 AppController::AppController(QObject *parent)
     : QObject(parent)
+    , m_settings(new SettingsStore(this))
+    , m_tray(new TrayController(this))
 {
-    QCoreApplication::setOrganizationName(kSettingsOrg);
-    QCoreApplication::setApplicationName(kSettingsApp);
+    m_alwaysOnTop = m_settings->alwaysOnTop();
+    m_tray->setAlwaysOnTop(m_alwaysOnTop);
 
-    QSettings settings;
-    m_alwaysOnTop = settings.value(kAlwaysOnTop, true).toBool();
-
-    createTrayIcon();
+    connect(m_tray, &TrayController::showRequested, this, &AppController::showWindow);
+    connect(m_tray, &TrayController::hideRequested, this, &AppController::hideWindow);
+    connect(m_tray, &TrayController::resetPositionRequested, this, &AppController::resetWindowPosition);
+    connect(m_tray, &TrayController::alwaysOnTopToggled, this, &AppController::setAlwaysOnTop);
+    connect(m_tray, &TrayController::quitRequested, this, &AppController::quit);
 }
 
-AppController::~AppController()
-{
-    delete m_trayMenu;
-}
+AppController::~AppController() = default;
 
 bool AppController::alwaysOnTop() const
 {
@@ -46,16 +36,14 @@ void AppController::setAlwaysOnTop(bool enabled)
     }
 
     m_alwaysOnTop = enabled;
-    QSettings settings;
-    settings.setValue(kAlwaysOnTop, m_alwaysOnTop);
-    updateTrayActions();
+    m_settings->setAlwaysOnTop(m_alwaysOnTop);
+    m_tray->setAlwaysOnTop(m_alwaysOnTop);
     emit alwaysOnTopChanged();
 }
 
 QPoint AppController::windowPosition() const
 {
-    QSettings settings;
-    return settings.value(kWindowPosition, QPoint(120, 120)).toPoint();
+    return m_settings->windowPosition();
 }
 
 QRect AppController::availableGeometry(int x, int y) const
@@ -70,21 +58,18 @@ QRect AppController::availableGeometry(int x, int y) const
 
 void AppController::saveWindowPosition(int x, int y)
 {
-    QSettings settings;
-    settings.setValue(kWindowPosition, QPoint(x, y));
+    m_settings->setWindowPosition(QPoint(x, y));
 }
 
 void AppController::resetWindowPosition()
 {
-    QSettings settings;
-    settings.remove(kWindowPosition);
+    m_settings->resetWindowPosition();
     emit resetPositionRequested();
 }
 
 void AppController::showContextMenu()
 {
-    updateTrayActions();
-    m_trayMenu->popup(QCursor::pos());
+    m_tray->showContextMenu();
 }
 
 void AppController::showWindow()
@@ -100,48 +85,4 @@ void AppController::hideWindow()
 void AppController::quit()
 {
     QApplication::quit();
-}
-
-void AppController::createTrayIcon()
-{
-    const QIcon icon = QApplication::style()->standardIcon(QStyle::SP_ComputerIcon);
-
-    m_trayMenu = new QMenu();
-
-    m_showAction = m_trayMenu->addAction(QStringLiteral("Show Pet"));
-    connect(m_showAction, &QAction::triggered, this, &AppController::showWindow);
-
-    m_hideAction = m_trayMenu->addAction(QStringLiteral("Hide Pet"));
-    connect(m_hideAction, &QAction::triggered, this, &AppController::hideWindow);
-
-    m_alwaysOnTopAction = m_trayMenu->addAction(QStringLiteral("Always on Top"));
-    m_alwaysOnTopAction->setCheckable(true);
-    connect(m_alwaysOnTopAction, &QAction::toggled, this, &AppController::setAlwaysOnTop);
-
-    m_trayMenu->addSeparator();
-
-    auto *resetAction = m_trayMenu->addAction(QStringLiteral("Reset Position"));
-    connect(resetAction, &QAction::triggered, this, &AppController::resetWindowPosition);
-
-    auto *quitAction = m_trayMenu->addAction(QStringLiteral("Quit"));
-    connect(quitAction, &QAction::triggered, this, &AppController::quit);
-
-    m_trayIcon.reset(new QSystemTrayIcon(icon));
-    m_trayIcon->setToolTip(QStringLiteral("DeskPal"));
-    m_trayIcon->setContextMenu(m_trayMenu);
-    connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
-        if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
-            emit showRequested();
-        }
-    });
-
-    updateTrayActions();
-    m_trayIcon->show();
-}
-
-void AppController::updateTrayActions()
-{
-    if (m_alwaysOnTopAction) {
-        m_alwaysOnTopAction->setChecked(m_alwaysOnTop);
-    }
 }

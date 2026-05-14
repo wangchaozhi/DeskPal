@@ -25,7 +25,9 @@ The app is split into two layers:
 Current main files:
 
 - `main.cpp`: application bootstrap, QML engine, and C++ controller registration.
-- `src/AppController.h/.cpp`: tray icon, settings, and commands exposed to QML.
+- `src/AppController.h/.cpp`: QML-facing facade and application command coordinator.
+- `src/SettingsStore.h/.cpp`: persisted application settings.
+- `src/TrayController.h/.cpp`: system tray icon and native context menu.
 - `Main.qml`: root QML entry.
 - `qml/PetWindow.qml`: transparent desktop window and interactions.
 - `qml/PetBody.qml`: placeholder pet visual and idle animation.
