@@ -4,6 +4,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QStringList>
+#include <QVariantList>
 
 class ActionController;
 class PetCatalog;
@@ -57,6 +58,10 @@ public:
     Q_INVOKABLE QString currentPetActionSource(const QString &action) const;
     Q_INVOKABLE QString resolvePetResource(const QString &relativePath) const;
     Q_INVOKABLE QStringList currentPetFrameUrls(const QString &action) const;
+    Q_INVOKABLE QString petActionSource(const QString &petId, const QString &action) const;
+    Q_INVOKABLE QString resolvePetResourceForPet(const QString &petId, const QString &relativePath) const;
+    Q_INVOKABLE QStringList petFrameUrls(const QString &petId, const QString &action) const;
+    Q_INVOKABLE QVariantList petProfiles() const;
     Q_INVOKABLE void quit();
 
 signals:
@@ -67,6 +72,7 @@ signals:
     void currentPetChanged();
     void showRequested();
     void hideRequested();
+    void settingsRequested();
     void resetPositionRequested();
 
 private:

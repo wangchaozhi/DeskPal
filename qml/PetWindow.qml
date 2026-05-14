@@ -68,6 +68,7 @@ Window {
         PetAsset2D {
             pressed: dragArea.pressed
             action: appController.petAction
+            petId: appController.currentPetId
             renderer: appController.currentPetRenderer
             source: appController.currentPetSource
         }
@@ -79,7 +80,9 @@ Window {
         PetAsset3D {
             pressed: dragArea.pressed
             action: appController.petAction
+            petId: appController.currentPetId
             renderer: appController.currentPetRenderer
+            source: appController.currentPetSource
         }
     }
 

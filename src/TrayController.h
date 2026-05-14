@@ -36,6 +36,7 @@ signals:
     void languageChanged(const QString &language);
     void renderModeChanged(const QString &renderMode);
     void petChanged(const QString &petId);
+    void settingsRequested();
     void quitRequested();
 
 private:
@@ -49,6 +50,7 @@ private:
     QMenu *m_renderModeMenu = nullptr;
     QAction *m_toggleVisibilityAction = nullptr;
     QAction *m_alwaysOnTopAction = nullptr;
+    QAction *m_settingsAction = nullptr;
     QAction *m_resetAction = nullptr;
     QAction *m_quitAction = nullptr;
     QActionGroup *m_languageActionGroup = nullptr;

@@ -47,6 +47,7 @@ AppController::AppController(QObject *parent)
     connect(m_tray, &TrayController::languageChanged, this, &AppController::setLanguage);
     connect(m_tray, &TrayController::renderModeChanged, this, &AppController::setRenderMode);
     connect(m_tray, &TrayController::petChanged, this, &AppController::setCurrentPetId);
+    connect(m_tray, &TrayController::settingsRequested, this, &AppController::settingsRequested);
     connect(m_tray, &TrayController::quitRequested, this, &AppController::quit);
     connect(m_actions, &ActionController::currentActionChanged, this, &AppController::petActionChanged);
 }
@@ -221,7 +222,22 @@ void AppController::setPetDragging(bool dragging)
 
 QString AppController::currentPetActionSource(const QString &action) const
 {
-    const PetProfile pet = m_petCatalog->petById(m_currentPetId);
+    return petActionSource(m_currentPetId, action);
+}
+
+QString AppController::resolvePetResource(const QString &relativePath) const
+{
+    return resolvePetResourceForPet(m_currentPetId, relativePath);
+}
+
+QStringList AppController::currentPetFrameUrls(const QString &action) const
+{
+    return petFrameUrls(m_currentPetId, action);
+}
+
+QString AppController::petActionSource(const QString &petId, const QString &action) const
+{
+    const PetProfile pet = m_petCatalog->petById(petId);
     const QString actionSource = pet.actions.value(action);
     if (!actionSource.isEmpty()) {
         return actionSource;
@@ -230,7 +246,7 @@ QString AppController::currentPetActionSource(const QString &action) const
     return pet.source;
 }
 
-QString AppController::resolvePetResource(const QString &relativePath) const
+QString AppController::resolvePetResourceForPet(const QString &petId, const QString &relativePath) const
 {
     if (relativePath.isEmpty()) {
         return {};
@@ -241,7 +257,7 @@ QString AppController::resolvePetResource(const QString &relativePath) const
         return relativePath;
     }
 
-    const PetProfile pet = m_petCatalog->petById(m_currentPetId);
+    const PetProfile pet = m_petCatalog->petById(petId);
     if (pet.basePath.isEmpty()) {
         return relativePath;
     }
@@ -249,14 +265,14 @@ QString AppController::resolvePetResource(const QString &relativePath) const
     return QUrl::fromLocalFile(QDir(pet.basePath).filePath(relativePath)).toString();
 }
 
-QStringList AppController::currentPetFrameUrls(const QString &action) const
+QStringList AppController::petFrameUrls(const QString &petId, const QString &action) const
 {
-    const PetProfile pet = m_petCatalog->petById(m_currentPetId);
+    const PetProfile pet = m_petCatalog->petById(petId);
     if (pet.basePath.isEmpty()) {
         return {};
     }
 
-    const QString actionSource = currentPetActionSource(action);
+    const QString actionSource = petActionSource(petId, action);
     const QFileInfo sourceInfo(QDir(pet.basePath).filePath(actionSource));
     const QDir frameDir(sourceInfo.isDir() ? sourceInfo.absoluteFilePath() : sourceInfo.absolutePath());
     if (!frameDir.exists()) {
@@ -278,6 +294,32 @@ QStringList AppController::currentPetFrameUrls(const QString &action) const
     }
 
     return frameUrls;
+}
+
+QVariantList AppController::petProfiles() const
+{
+    QVariantList profiles;
+    for (const PetProfile &pet : m_petCatalog->pets()) {
+        QVariantMap profile;
+        profile.insert(QStringLiteral("id"), pet.id);
+        profile.insert(QStringLiteral("name"), pet.name);
+        profile.insert(QStringLiteral("type"), pet.type);
+        profile.insert(QStringLiteral("renderer"), pet.renderer);
+        profile.insert(QStringLiteral("source"), pet.source);
+        profile.insert(QStringLiteral("basePath"), pet.basePath);
+
+        QStringList actionNames = pet.actions.keys();
+        actionNames.sort();
+        QVariantMap actions;
+        for (const QString &actionName : actionNames) {
+            actions.insert(actionName, pet.actions.value(actionName));
+        }
+        profile.insert(QStringLiteral("actions"), actions);
+        profile.insert(QStringLiteral("actionText"), actionNames.join(QStringLiteral(", ")));
+        profiles.append(profile);
+    }
+
+    return profiles;
 }
 
 void AppController::quit()

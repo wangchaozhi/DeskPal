@@ -6,7 +6,9 @@ Item {
 
     property bool pressed: false
     property string action: "idle"
+    property string petId: appController.currentPetId
     property string renderer: "quick3d"
+    property string source: ""
 
     width: 190
     height: 220
@@ -21,8 +23,8 @@ Item {
 
         Loader {
             anchors.fill: parent
-            source: appController.currentPetBasePath.length > 0
-                    ? appController.resolvePetResource(appController.currentPetSource)
+            source: root.source.length > 0
+                    ? appController.resolvePetResourceForPet(root.petId, root.source)
                     : "PetModel3D.qml"
 
             onLoaded: {
@@ -72,7 +74,7 @@ Item {
                 }
 
                 Model {
-                    source: appController.resolvePetResource(appController.currentPetSource)
+                    source: appController.resolvePetResourceForPet(root.petId, root.source)
                     scale: Qt.vector3d(1, 1, 1)
                 }
             }

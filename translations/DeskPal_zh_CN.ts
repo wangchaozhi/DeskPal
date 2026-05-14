@@ -9,6 +9,57 @@
     </message>
 </context>
 <context>
+    <name>PetSettingsWindow</name>
+    <message>
+        <source>Pet Settings</source>
+        <translation>宠物设置</translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>刷新</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>名称</translation>
+    </message>
+    <message>
+        <source>ID</source>
+        <translation>ID</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <source>Renderer</source>
+        <translation>渲染器</translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation>资源入口</translation>
+    </message>
+    <message>
+        <source>Actions</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>Resource</source>
+        <translation>资源</translation>
+    </message>
+    <message>
+        <source>Built-in pet</source>
+        <translation>内置宠物</translation>
+    </message>
+    <message>
+        <source>Use This Pet</source>
+        <translation>使用这个宠物</translation>
+    </message>
+    <message>
+        <source>Current pet</source>
+        <translation>当前宠物</translation>
+    </message>
+</context>
+<context>
     <name>TrayController</name>
     <message>
         <source>Show Pet</source>
@@ -41,6 +92,10 @@
     <message>
         <source>3D Pet</source>
         <translation>3D 桌宠</translation>
+    </message>
+    <message>
+        <source>Pet Settings</source>
+        <translation>宠物设置</translation>
     </message>
     <message>
         <source>System</source>

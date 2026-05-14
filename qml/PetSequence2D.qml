@@ -3,12 +3,18 @@ import QtQuick
 Item {
     id: root
 
+    property string petId: appController.currentPetId
     property string action: "idle"
-    property var frames: appController.currentPetFrameUrls(action)
+    property var frames: appController.petFrameUrls(petId, action)
     property int frameIndex: 0
 
     onActionChanged: {
-        frames = appController.currentPetFrameUrls(action)
+        frames = appController.petFrameUrls(petId, action)
+        frameIndex = 0
+    }
+
+    onPetIdChanged: {
+        frames = appController.petFrameUrls(petId, action)
         frameIndex = 0
     }
 
@@ -16,7 +22,7 @@ Item {
         target: appController
 
         function onCurrentPetChanged() {
-            root.frames = appController.currentPetFrameUrls(root.action)
+            root.frames = appController.petFrameUrls(root.petId, root.action)
             root.frameIndex = 0
         }
     }

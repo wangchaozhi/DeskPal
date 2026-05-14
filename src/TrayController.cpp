@@ -143,6 +143,9 @@ void TrayController::createMenu()
         emit renderModeChanged(action->data().toString());
     });
 
+    m_settingsAction = m_trayMenu->addAction(QString());
+    connect(m_settingsAction, &QAction::triggered, this, &TrayController::settingsRequested);
+
     m_languageMenu = m_trayMenu->addMenu(QString());
     m_languageActionGroup = new QActionGroup(this);
     m_languageActionGroup->setExclusive(true);
@@ -194,6 +197,7 @@ void TrayController::retranslate()
     m_renderModeMenu->setTitle(tr("Render Mode"));
     m_render2DAction->setText(tr("2D Pet"));
     m_render3DAction->setText(tr("3D Pet"));
+    m_settingsAction->setText(tr("Pet Settings"));
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));

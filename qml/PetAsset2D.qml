@@ -5,6 +5,7 @@ Item {
 
     property bool pressed: false
     property string action: "idle"
+    property string petId: appController.currentPetId
     property string renderer: "qml"
     property string source: ""
 
@@ -33,8 +34,8 @@ Item {
 
         Loader {
             anchors.fill: parent
-            source: appController.currentPetBasePath.length > 0
-                    ? appController.resolvePetResource(appController.currentPetSource)
+            source: root.source.length > 0
+                    ? appController.resolvePetResourceForPet(root.petId, root.source)
                     : "PetBody.qml"
 
             onLoaded: {
@@ -55,7 +56,7 @@ Item {
             anchors.fill: parent
             fillMode: Image.PreserveAspectFit
             smooth: true
-            source: appController.resolvePetResource(appController.currentPetActionSource(root.action))
+            source: appController.resolvePetResourceForPet(root.petId, appController.petActionSource(root.petId, root.action))
         }
     }
 
@@ -66,7 +67,7 @@ Item {
             anchors.fill: parent
             fillMode: Image.PreserveAspectFit
             playing: true
-            source: appController.resolvePetResource(appController.currentPetActionSource(root.action))
+            source: appController.resolvePetResourceForPet(root.petId, appController.petActionSource(root.petId, root.action))
         }
     }
 
@@ -75,6 +76,7 @@ Item {
 
         PetSequence2D {
             anchors.fill: parent
+            petId: root.petId
             action: root.action
         }
     }
