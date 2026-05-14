@@ -11,6 +11,7 @@ CI 支持手动输入发布 tag，并自动完成以下工作：
 - 构建 Linux x64 AppImage。
 - 缓存 Qt 安装目录，减少重复下载时间。
 - 上传构建产物为 GitHub Actions artifacts。
+- 单个平台构建失败时，发布阶段仍会继续上传其他平台已成功生成的资产。
 - 自动创建 tag。
 - 自动创建或更新 GitHub Release。
 - 将平台资产上传到对应 Release。
@@ -43,6 +44,8 @@ DeskPal-windows-x64.zip
 DeskPal-macos-x64.zip
 DeskPal-linux-x64.AppImage
 ```
+
+如果某个平台构建失败，对应资产会缺失，但其他平台已成功生成的资产仍会被上传到 Release。
 
 Windows、macOS 和 Linux 分别使用以下部署方式：
 

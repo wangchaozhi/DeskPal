@@ -224,6 +224,7 @@ jobs:
     name: Publish GitHub Release
     runs-on: ubuntu-24.04
     needs: build
+    if: ${{ always() }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -259,12 +260,24 @@ jobs:
         run: |
           set -euo pipefail
           ls -la dist
-          notes="DeskPal ${TAG_NAME}
 
-          Assets:
-          - DeskPal-windows-x64.zip
-          - DeskPal-macos-x64.zip
-          - DeskPal-linux-x64.AppImage"
+          mapfile -t assets < <(find dist -maxdepth 1 -type f -printf '%f\n' | sort)
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No release assets were downloaded." >&2
+            exit 1
+          fi
+
+          notes_file="$(mktemp)"
+          {
+            echo "DeskPal ${TAG_NAME}"
+            echo
+            echo "Assets:"
+            for asset in "${assets[@]}"; do
+              echo "- ${asset}"
+            done
+            echo
+            echo "Note: release uploads all assets built successfully. If one platform build failed, its asset will be absent from this release."
+          } > "${notes_file}"
 
           prerelease_flag=()
           if [ "${PRERELEASE}" = "true" ]; then
@@ -272,10 +285,11 @@ jobs:
           fi
 
           if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            gh release edit "${TAG_NAME}" --notes-file "${notes_file}" "${prerelease_flag[@]}"
             gh release upload "${TAG_NAME}" dist/* --clobber
           else
             gh release create "${TAG_NAME}" dist/* \
               --title "DeskPal ${TAG_NAME}" \
-              --notes "${notes}" \
+              --notes-file "${notes_file}" \
               "${prerelease_flag[@]}"
           fi
