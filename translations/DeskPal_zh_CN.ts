@@ -23,8 +23,24 @@
         <translation>窗口置顶</translation>
     </message>
     <message>
+        <source>Pet</source>
+        <translation>宠物</translation>
+    </message>
+    <message>
         <source>Language</source>
         <translation>语言</translation>
+    </message>
+    <message>
+        <source>Render Mode</source>
+        <translation>渲染模式</translation>
+    </message>
+    <message>
+        <source>2D Pet</source>
+        <translation>2D 桌宠</translation>
+    </message>
+    <message>
+        <source>3D Pet</source>
+        <translation>3D 桌宠</translation>
     </message>
     <message>
         <source>System</source>

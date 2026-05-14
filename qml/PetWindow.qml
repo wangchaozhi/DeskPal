@@ -56,10 +56,31 @@ Window {
         }
     }
 
-    PetBody {
-        id: pet
+    Loader {
+        id: petRenderer
         anchors.centerIn: parent
-        pressed: dragArea.pressed
+        sourceComponent: appController.currentPetType === "3d" || appController.renderMode === "3d" ? pet3DComponent : pet2DComponent
+    }
+
+    Component {
+        id: pet2DComponent
+
+        PetAsset2D {
+            pressed: dragArea.pressed
+            action: appController.petAction
+            renderer: appController.currentPetRenderer
+            source: appController.currentPetSource
+        }
+    }
+
+    Component {
+        id: pet3DComponent
+
+        PetAsset3D {
+            pressed: dragArea.pressed
+            action: appController.petAction
+            renderer: appController.currentPetRenderer
+        }
     }
 
     MouseArea {
@@ -72,6 +93,7 @@ Window {
         onPressed: mouse => {
             if (mouse.button === Qt.LeftButton) {
                 dragOffset = Qt.point(mouse.x, mouse.y)
+                appController.setPetDragging(true)
             }
         }
 
@@ -85,6 +107,7 @@ Window {
 
         onReleased: mouse => {
             if (mouse.button === Qt.LeftButton) {
+                appController.setPetDragging(false)
                 appController.saveWindowPosition(petWindow.x, petWindow.y)
             }
         }
@@ -92,6 +115,8 @@ Window {
         onClicked: mouse => {
             if (mouse.button === Qt.RightButton) {
                 appController.showContextMenu()
+            } else if (mouse.button === Qt.LeftButton) {
+                appController.triggerPetAction("happy", 1600)
             }
         }
     }

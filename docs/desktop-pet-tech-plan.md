@@ -26,6 +26,8 @@ Current main files:
 
 - `main.cpp`: application bootstrap, QML engine, and C++ controller registration.
 - `src/AppController.h/.cpp`: QML-facing facade and application command coordinator.
+- `src/ActionController.h/.cpp`: pet action state, temporary actions, dragging state, and idle action scheduling.
+- `src/PetCatalog.h/.cpp`: built-in pet list and pet metadata lookup.
 - `src/SettingsStore.h/.cpp`: persisted application settings.
 - `src/TrayController.h/.cpp`: system tray icon and native context menu.
 - `src/TranslationManager.h/.cpp`: Qt and application translation loading.
@@ -41,6 +43,9 @@ Current main files:
 - Clamp pet movement to the current screen's available work area.
 - Save and restore the last window position.
 - Native right-click menu with topmost, hide, reset position, and quit.
+- Basic action system with idle, happy, sleepy, and dragging states.
+- Switchable 2D and 3D render modes driven by the same action state.
+- Replaceable pet selection with built-in 2D and 3D pets.
 - System tray menu with show, hide, topmost, reset position, and quit.
 - Runtime language selection with system, English, and Simplified Chinese options.
 - Debug and Release Visual Studio build scripts.

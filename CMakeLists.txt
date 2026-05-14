@@ -5,14 +5,18 @@ project(DeskPal VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Widgets LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Quick Quick3D Widgets LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
 qt_add_executable(DeskPal
     main.cpp
+    src/ActionController.cpp
+    src/ActionController.h
     src/AppController.cpp
     src/AppController.h
+    src/PetCatalog.cpp
+    src/PetCatalog.h
     src/SettingsStore.cpp
     src/SettingsStore.h
     src/TrayController.cpp
@@ -27,6 +31,10 @@ qt_add_qml_module(DeskPal
         Main.qml
         qml/PetWindow.qml
         qml/PetBody.qml
+        qml/PetModel3D.qml
+        qml/PetAsset2D.qml
+        qml/PetAsset3D.qml
+        qml/PetSequence2D.qml
 )
 
 qt_add_translations(DeskPal
@@ -51,6 +59,7 @@ set_target_properties(DeskPal PROPERTIES
 target_link_libraries(DeskPal
     PRIVATE
         Qt6::Quick
+        Qt6::Quick3D
         Qt6::Widgets
 )
 

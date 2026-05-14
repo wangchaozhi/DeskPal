@@ -9,9 +9,13 @@ constexpr auto kSettingsApp = "DeskPal";
 constexpr auto kWindowPosition = "window/position";
 constexpr auto kAlwaysOnTop = "window/alwaysOnTop";
 constexpr auto kLanguage = "ui/language";
+constexpr auto kRenderMode = "pet/renderMode";
+constexpr auto kCurrentPetId = "pet/currentPetId";
 constexpr auto kDefaultWindowPositionX = 120;
 constexpr auto kDefaultWindowPositionY = 120;
 constexpr auto kDefaultLanguage = "system";
+constexpr auto kDefaultRenderMode = "2d";
+constexpr auto kDefaultPetId = "classic_2d";
 } // namespace
 
 SettingsStore::SettingsStore(QObject *parent)
@@ -61,4 +65,28 @@ void SettingsStore::setLanguage(const QString &language)
 {
     QSettings settings;
     settings.setValue(kLanguage, language);
+}
+
+QString SettingsStore::renderMode() const
+{
+    QSettings settings;
+    return settings.value(kRenderMode, QString::fromLatin1(kDefaultRenderMode)).toString();
+}
+
+void SettingsStore::setRenderMode(const QString &renderMode)
+{
+    QSettings settings;
+    settings.setValue(kRenderMode, renderMode);
+}
+
+QString SettingsStore::currentPetId() const
+{
+    QSettings settings;
+    return settings.value(kCurrentPetId, QString::fromLatin1(kDefaultPetId)).toString();
+}
+
+void SettingsStore::setCurrentPetId(const QString &petId)
+{
+    QSettings settings;
+    settings.setValue(kCurrentPetId, petId);
 }

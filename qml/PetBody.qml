@@ -4,6 +4,7 @@ Item {
     id: root
 
     property bool pressed: false
+    property string action: "idle"
 
     width: 180
     height: 210
@@ -11,8 +12,8 @@ Item {
     transform: Scale {
         origin.x: root.width / 2
         origin.y: root.height
-        xScale: root.pressed ? 0.96 : 1.0
-        yScale: root.pressed ? 1.03 : 1.0
+        xScale: root.action === "happy" ? 1.06 : root.pressed ? 0.96 : 1.0
+        yScale: root.action === "sleepy" ? 0.94 : root.pressed ? 1.03 : 1.0
 
         Behavior on xScale { NumberAnimation { duration: 120 } }
         Behavior on yScale { NumberAnimation { duration: 120 } }
@@ -20,8 +21,8 @@ Item {
 
     SequentialAnimation on y {
         loops: Animation.Infinite
-        NumberAnimation { to: -5; duration: 1200; easing.type: Easing.InOutSine }
-        NumberAnimation { to: 0; duration: 1200; easing.type: Easing.InOutSine }
+        NumberAnimation { to: root.action === "sleepy" ? -2 : root.action === "happy" ? -10 : -5; duration: root.action === "happy" ? 420 : 1200; easing.type: Easing.InOutSine }
+        NumberAnimation { to: 0; duration: root.action === "happy" ? 420 : 1200; easing.type: Easing.InOutSine }
     }
 
     Rectangle {
@@ -40,7 +41,7 @@ Item {
         width: 136
         height: 154
         radius: 58
-        color: "#f7cf5e"
+        color: root.action === "sleepy" ? "#d8d3eb" : root.action === "happy" ? "#ffd966" : root.action === "dragging" ? "#f2b84b" : "#f7cf5e"
         border.width: 3
         border.color: "#3a2c1a"
         anchors.horizontalCenter: parent.horizontalCenter
@@ -76,7 +77,7 @@ Item {
 
     Rectangle {
         width: 26
-        height: 34
+        height: root.action === "sleepy" ? 8 : 34
         radius: 13
         color: "#2f2519"
         anchors.left: body.left
@@ -98,7 +99,7 @@ Item {
 
     Rectangle {
         width: 26
-        height: 34
+        height: root.action === "sleepy" ? 8 : 34
         radius: 13
         color: "#2f2519"
         anchors.right: body.right
@@ -119,9 +120,9 @@ Item {
     }
 
     Rectangle {
-        width: 34
-        height: 18
-        radius: 9
+        width: root.action === "happy" ? 46 : 34
+        height: root.action === "happy" ? 24 : 18
+        radius: height / 2
         color: "#df7f6c"
         anchors.horizontalCenter: body.horizontalCenter
         anchors.top: body.top

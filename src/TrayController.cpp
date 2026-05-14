@@ -57,6 +57,47 @@ void TrayController::setPetVisible(bool visible)
     retranslate();
 }
 
+void TrayController::setRenderMode(const QString &renderMode)
+{
+    QAction *targetAction = renderMode == QStringLiteral("3d") ? m_render3DAction : m_render2DAction;
+    if (targetAction) {
+        const QSignalBlocker blocker(m_renderModeActionGroup);
+        targetAction->setChecked(true);
+    }
+}
+
+void TrayController::setPets(const QVector<PetProfile> &pets)
+{
+    if (!m_petMenu || !m_petActionGroup) {
+        return;
+    }
+
+    for (QAction *action : m_petActions) {
+        m_petMenu->removeAction(action);
+        action->deleteLater();
+    }
+    m_petActions.clear();
+
+    for (const PetProfile &pet : pets) {
+        QAction *action = m_petMenu->addAction(pet.name);
+        action->setCheckable(true);
+        action->setData(pet.id);
+        m_petActionGroup->addAction(action);
+        m_petActions.append(action);
+    }
+
+    setCurrentPet(m_currentPetId);
+}
+
+void TrayController::setCurrentPet(const QString &petId)
+{
+    m_currentPetId = petId;
+    for (QAction *action : m_petActions) {
+        const QSignalBlocker blocker(action);
+        action->setChecked(action->data().toString() == m_currentPetId);
+    }
+}
+
 void TrayController::showContextMenu()
 {
     if (m_trayMenu) {
@@ -73,9 +114,34 @@ void TrayController::createMenu()
     m_toggleVisibilityAction = m_trayMenu->addAction(QString());
     connect(m_toggleVisibilityAction, &QAction::triggered, this, &TrayController::toggleVisibilityRequested);
 
+    m_petMenu = m_trayMenu->addMenu(QString());
+    m_petActionGroup = new QActionGroup(this);
+    m_petActionGroup->setExclusive(true);
+    connect(m_petActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
+        emit petChanged(action->data().toString());
+    });
+
     m_alwaysOnTopAction = m_trayMenu->addAction(QString());
     m_alwaysOnTopAction->setCheckable(true);
     connect(m_alwaysOnTopAction, &QAction::toggled, this, &TrayController::alwaysOnTopToggled);
+
+    m_renderModeMenu = m_trayMenu->addMenu(QString());
+    m_renderModeActionGroup = new QActionGroup(this);
+    m_renderModeActionGroup->setExclusive(true);
+
+    m_render2DAction = m_renderModeMenu->addAction(QString());
+    m_render2DAction->setCheckable(true);
+    m_render2DAction->setData(QStringLiteral("2d"));
+    m_renderModeActionGroup->addAction(m_render2DAction);
+
+    m_render3DAction = m_renderModeMenu->addAction(QString());
+    m_render3DAction->setCheckable(true);
+    m_render3DAction->setData(QStringLiteral("3d"));
+    m_renderModeActionGroup->addAction(m_render3DAction);
+
+    connect(m_renderModeActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
+        emit renderModeChanged(action->data().toString());
+    });
 
     m_languageMenu = m_trayMenu->addMenu(QString());
     m_languageActionGroup = new QActionGroup(this);
@@ -123,7 +189,11 @@ void TrayController::createMenu()
 void TrayController::retranslate()
 {
     m_toggleVisibilityAction->setText(m_petVisible ? tr("Hide Pet") : tr("Show Pet"));
+    m_petMenu->setTitle(tr("Pet"));
     m_alwaysOnTopAction->setText(tr("Always on Top"));
+    m_renderModeMenu->setTitle(tr("Render Mode"));
+    m_render2DAction->setText(tr("2D Pet"));
+    m_render3DAction->setText(tr("3D Pet"));
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));

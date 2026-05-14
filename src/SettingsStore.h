@@ -20,4 +20,10 @@ public:
 
     QString language() const;
     void setLanguage(const QString &language);
+
+    QString renderMode() const;
+    void setRenderMode(const QString &renderMode);
+
+    QString currentPetId() const;
+    void setCurrentPetId(const QString &petId);
 };
