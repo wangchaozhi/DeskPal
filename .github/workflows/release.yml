@@ -1,0 +1,216 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v0.1.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark this GitHub release as a prerelease"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: DeskPal
+  QT_VERSION: 6.10.0
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: Build ${{ matrix.asset_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            aqt_host: windows
+            qt_arch: win64_msvc2022_64
+            asset_name: DeskPal-windows-x64
+          - os: macos-13
+            aqt_host: mac
+            qt_arch: clang_64
+            asset_name: DeskPal-macos-x64
+          - os: ubuntu-24.04
+            aqt_host: linux
+            qt_arch: linux_gcc_64
+            asset_name: DeskPal-linux-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-sync1 \
+            libxcb-xfixes0 \
+            libxcb-xinerama0 \
+            libxcb-xinput0 \
+            libxcb-xkb1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Qt
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install aqtinstall
+          python -m aqt install-qt "${{ matrix.aqt_host }}" desktop "${QT_VERSION}" "${{ matrix.qt_arch }}" -O "${RUNNER_TEMP}/Qt"
+          qt_root="${RUNNER_TEMP}/Qt/${QT_VERSION}/${{ matrix.qt_arch }}"
+          echo "QT_ROOT=${qt_root}" >> "${GITHUB_ENV}"
+          echo "CMAKE_PREFIX_PATH=${qt_root}" >> "${GITHUB_ENV}"
+          echo "${qt_root}/bin" >> "${GITHUB_PATH}"
+
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $packageRoot = Join-Path $PWD "package"
+          $deployDir = Join-Path $packageRoot "${{ matrix.asset_name }}"
+          New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
+
+          $exe = Get-ChildItem -Path build -Recurse -Filter "${env:APP_NAME}.exe" | Select-Object -First 1
+          if (-not $exe) { throw "Executable was not found." }
+
+          Copy-Item $exe.FullName $deployDir
+          Copy-Item README.md $deployDir
+          Copy-Item docs $deployDir -Recurse
+          windeployqt --release --qmldir "$PWD\qml" "$deployDir\${env:APP_NAME}.exe"
+
+          Compress-Archive -Path "$deployDir\*" -DestinationPath "$packageRoot\${{ matrix.asset_name }}.zip" -Force
+
+      - name: Package macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package
+          app_path="$(find build -maxdepth 4 -name "${APP_NAME}.app" -print -quit)"
+          if [ -z "${app_path}" ]; then
+            echo "${APP_NAME}.app was not found." >&2
+            exit 1
+          fi
+
+          macdeployqt "${app_path}" -qmldir="${PWD}/qml"
+          mkdir -p "package/${{ matrix.asset_name }}"
+          cp -R "${app_path}" "package/${{ matrix.asset_name }}/"
+          cp README.md "package/${{ matrix.asset_name }}/"
+          cp -R docs "package/${{ matrix.asset_name }}/"
+          ditto -c -k --sequesterRsrc --keepParent "package/${{ matrix.asset_name }}" "package/${{ matrix.asset_name }}.zip"
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "package/${{ matrix.asset_name }}"
+          exe_path="$(find build -type f -name "${APP_NAME}" -executable -print -quit)"
+          if [ -z "${exe_path}" ]; then
+            echo "${APP_NAME} executable was not found." >&2
+            exit 1
+          fi
+
+          cp "${exe_path}" "package/${{ matrix.asset_name }}/"
+          cp README.md "package/${{ matrix.asset_name }}/"
+          cp -R docs "package/${{ matrix.asset_name }}/"
+          tar -czf "package/${{ matrix.asset_name }}.tar.gz" -C package "${{ matrix.asset_name }}"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: |
+            package/*.zip
+            package/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create or update tag
+        env:
+          TAG_NAME: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags
+          if git rev-parse -q --verify "refs/tags/${TAG_NAME}" >/dev/null; then
+            echo "Tag ${TAG_NAME} already exists."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG_NAME}" -m "Release ${TAG_NAME}"
+            git push origin "${TAG_NAME}"
+          fi
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          ls -la dist
+          notes="DeskPal ${TAG_NAME}
+
+          Assets:
+          - DeskPal-windows-x64.zip
+          - DeskPal-macos-x64.zip
+          - DeskPal-linux-x64.tar.gz"
+
+          prerelease_flag=()
+          if [ "${PRERELEASE}" = "true" ]; then
+            prerelease_flag=(--prerelease)
+          fi
+
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            gh release upload "${TAG_NAME}" dist/* --clobber
+          else
+            gh release create "${TAG_NAME}" dist/* \
+              --title "DeskPal ${TAG_NAME}" \
+              --notes "${notes}" \
+              "${prerelease_flag[@]}"
+          fi
