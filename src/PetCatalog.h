@@ -41,6 +41,8 @@ public:
     bool saveProfile(const PetProfile &pet, QString *error = nullptr) const;
     bool importPetPack(const QString &sourceDir, QString *error = nullptr);
     bool exportPetPack(const QString &petId, const QString &targetDir, QString *error = nullptr) const;
+    bool createPet(const QString &id, const QString &name, const QString &type, QString *error = nullptr);
+    bool deletePet(const QString &petId, QString *error = nullptr);
 
 private:
     void loadBuiltInPets();

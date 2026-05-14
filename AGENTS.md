@@ -73,6 +73,10 @@ set "QT_PREFIX=E:\Qt\6.10.0\msvc2022_64"
 │  ├─ PetAsset3D.qml
 │  └─ PetSequence2D.qml
 │  └─ PetSettingsWindow.qml
+│  ├─ PetPreviewPanel.qml
+│  ├─ PetProfileEditor.qml
+│  ├─ Pet2DEditor.qml
+│  └─ Pet3DEditor.qml
 ├─ translations/
 ├─ assets/
 └─ docs/
@@ -89,7 +93,11 @@ set "QT_PREFIX=E:\Qt\6.10.0\msvc2022_64"
 - `PetWindow.qml`：透明桌宠窗口、拖拽、右键菜单、点击动作。
 - `PetAsset2D.qml`：2D 资源渲染分发。
 - `PetAsset3D.qml`：3D 资源渲染分发。
-- `PetSettingsWindow.qml`：宠物配置可视化面板，显示宠物列表、资源信息和预览。
+- `PetSettingsWindow.qml`：宠物配置可视化面板外壳，负责列表、导入导出和保存流程。
+- `PetPreviewPanel.qml`：宠物预览和动作预览按钮。
+- `PetProfileEditor.qml`：通用资料编辑，如名称、渲染器、入口、窗口尺寸和缩放。
+- `Pet2DEditor.qml`：2D 专属编辑，如帧率和动作资源。
+- `Pet3DEditor.qml`：3D 专属编辑，如动作资源和动画片段映射，后续继续扩展相机/灯光/模型变换。
 
 ## 宠物系统
 

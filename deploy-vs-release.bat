@@ -35,4 +35,7 @@ if exist "%DEPLOY_DIR%\Qt6QuickControls2.dll" del /q "%DEPLOY_DIR%\Qt6QuickContr
 "%QT_PREFIX%\bin\windeployqt.exe" --release --qmldir "%ROOT_DIR%\qml" "%APP_EXE%"
 if errorlevel 1 exit /b %errorlevel%
 
+xcopy /e /i /y "%ROOT_DIR%\assets" "%DEPLOY_DIR%\assets" >nul
+if errorlevel 1 exit /b %errorlevel%
+
 echo Release deployment finished: %DEPLOY_DIR%

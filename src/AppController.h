@@ -87,6 +87,8 @@ public:
     Q_INVOKABLE bool savePetProfile(const QVariantMap &profile);
     Q_INVOKABLE bool importPetPack(const QString &folderUrl);
     Q_INVOKABLE bool exportPetPack(const QString &petId, const QString &folderUrl);
+    Q_INVOKABLE bool createPet(const QString &name, const QString &type);
+    Q_INVOKABLE bool deletePet(const QString &petId);
     Q_INVOKABLE void quit();
 
 signals:

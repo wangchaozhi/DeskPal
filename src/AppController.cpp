@@ -43,6 +43,29 @@ bool hasImageFrames(const QString &directoryPath)
     return !directory.entryInfoList(filters, QDir::Files, QDir::Name).isEmpty();
 }
 
+QString slugifyPetId(const QString &name)
+{
+    QString slug;
+    for (const QChar &ch : name.toLower()) {
+        if (ch.isLetterOrNumber()) {
+            slug.append(ch);
+        } else if (ch.isSpace() || ch == QLatin1Char('-') || ch == QLatin1Char('_')) {
+            if (!slug.endsWith(QLatin1Char('_'))) {
+                slug.append(QLatin1Char('_'));
+            }
+        }
+    }
+
+    while (slug.startsWith(QLatin1Char('_'))) {
+        slug.remove(0, 1);
+    }
+    while (slug.endsWith(QLatin1Char('_'))) {
+        slug.chop(1);
+    }
+
+    return slug.isEmpty() ? QStringLiteral("pet") : slug;
+}
+
 QStringList validatePet(const PetProfile &pet)
 {
     QStringList issues;
@@ -649,6 +672,54 @@ bool AppController::exportPetPack(const QString &petId, const QString &folderUrl
         return false;
     }
 
+    setLastError(QString());
+    return true;
+}
+
+bool AppController::createPet(const QString &name, const QString &type)
+{
+    const QString trimmedName = name.trimmed();
+    if (trimmedName.isEmpty()) {
+        setLastError(tr("Pet name is required"));
+        return false;
+    }
+
+    const QString baseId = slugifyPetId(trimmedName);
+    QString uniqueId = baseId;
+    int suffix = 1;
+    while (m_petCatalog->contains(uniqueId)) {
+        uniqueId = baseId + QStringLiteral("_%1").arg(suffix++);
+    }
+
+    QString error;
+    if (!m_petCatalog->createPet(uniqueId, trimmedName, type, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    m_tray->setPets(m_petCatalog->pets());
+    m_tray->setCurrentPet(m_currentPetId);
+    setLastError(QString());
+    return true;
+}
+
+bool AppController::deletePet(const QString &petId)
+{
+    QString error;
+    if (!m_petCatalog->deletePet(petId, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    if (!m_petCatalog->contains(m_currentPetId)) {
+        m_currentPetId = m_petCatalog->defaultPetId();
+        m_settings->setCurrentPetId(m_currentPetId);
+        applyPetToActionController();
+        emit currentPetChanged();
+    }
+
+    m_tray->setPets(m_petCatalog->pets());
+    m_tray->setCurrentPet(m_currentPetId);
     setLastError(QString());
     return true;
 }

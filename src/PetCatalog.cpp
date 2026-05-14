@@ -224,6 +224,89 @@ bool PetCatalog::exportPetPack(const QString &petId, const QString &targetDir, Q
     return true;
 }
 
+bool PetCatalog::createPet(const QString &id, const QString &name, const QString &type, QString *error)
+{
+    if (id.isEmpty() || name.isEmpty()) {
+        if (error) {
+            *error = tr("Pet name is required");
+        }
+        return false;
+    }
+
+    if (contains(id)) {
+        if (error) {
+            *error = tr("A pet with this ID already exists");
+        }
+        return false;
+    }
+
+    const QString petDir = QDir(writablePetsRoot()).filePath(id);
+    if (QFileInfo::exists(petDir)) {
+        if (error) {
+            *error = tr("A pet folder with this ID already exists");
+        }
+        return false;
+    }
+
+    if (!QDir().mkpath(petDir)) {
+        if (error) {
+            *error = tr("Cannot create pet folder");
+        }
+        return false;
+    }
+
+    PetProfile pet;
+    pet.id = id;
+    pet.name = name;
+    pet.type = type == QStringLiteral("3d") ? QStringLiteral("3d") : QStringLiteral("2d");
+    pet.renderer = pet.type == QStringLiteral("3d") ? QStringLiteral("quick3d") : QStringLiteral("qml");
+    pet.basePath = petDir;
+    pet.actions = {
+        {QStringLiteral("idle"), QString()},
+        {QStringLiteral("happy"), QString()},
+        {QStringLiteral("sleepy"), QString()},
+        {QStringLiteral("dragging"), QString()},
+    };
+    pet.width = pet.type == QStringLiteral("3d") ? 240 : 220;
+    pet.height = pet.type == QStringLiteral("3d") ? 260 : 250;
+
+    if (!saveProfile(pet, error)) {
+        QDir(petDir).removeRecursively();
+        return false;
+    }
+
+    reload();
+    return true;
+}
+
+bool PetCatalog::deletePet(const QString &petId, QString *error)
+{
+    const PetProfile pet = petById(petId);
+    if (pet.id != petId) {
+        if (error) {
+            *error = tr("Unknown pet");
+        }
+        return false;
+    }
+
+    if (pet.basePath.isEmpty()) {
+        if (error) {
+            *error = tr("Built-in pets cannot be deleted");
+        }
+        return false;
+    }
+
+    if (!QDir(pet.basePath).removeRecursively()) {
+        if (error) {
+            *error = tr("Failed to delete pet folder");
+        }
+        return false;
+    }
+
+    reload();
+    return true;
+}
+
 void PetCatalog::loadBuiltInPets()
 {
     PetProfile classic;

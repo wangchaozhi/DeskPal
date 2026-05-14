@@ -36,6 +36,10 @@ qt_add_qml_module(DeskPal
         qml/PetAsset3D.qml
         qml/PetSequence2D.qml
         qml/PetSettingsWindow.qml
+        qml/PetPreviewPanel.qml
+        qml/PetProfileEditor.qml
+        qml/Pet2DEditor.qml
+        qml/Pet3DEditor.qml
 )
 
 qt_add_translations(DeskPal
