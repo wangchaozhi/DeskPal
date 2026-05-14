@@ -37,13 +37,13 @@ jobs:
           - os: macos-15-intel
             aqt_host: mac
             qt_arch: clang_64
-            qt_dir: clang_64
+            qt_dir: macos
             cmake_extra_args: -DCMAKE_OSX_ARCHITECTURES=x86_64
             asset_name: DeskPal-macos-x64
           - os: macos-15
             aqt_host: mac
             qt_arch: clang_64
-            qt_dir: clang_64
+            qt_dir: macos
             cmake_extra_args: -DCMAKE_OSX_ARCHITECTURES=arm64
             asset_name: DeskPal-macos-arm64
           - os: ubuntu-22.04

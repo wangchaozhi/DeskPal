@@ -74,7 +74,7 @@ qt-v2-${{ runner.os }}-${{ env.QT_VERSION }}-${{ matrix.qt_arch }}-${{ matrix.qt
 
 当缓存命中时，CI 会跳过 `aqtinstall` 的 Qt 下载步骤，只重新配置环境变量。
 
-注意：`aqtinstall` 的下载架构名和实际安装目录名不一定相同。例如 Windows 下载参数是 `win64_msvc2022_64`，实际目录通常是 `msvc2022_64`；Linux 下载参数是 `linux_gcc_64`，实际目录通常是 `gcc_64`。
+注意：`aqtinstall` 的下载架构名和实际安装目录名不一定相同。例如 Windows 下载参数是 `win64_msvc2022_64`，实际目录通常是 `msvc2022_64`；Linux 下载参数是 `linux_gcc_64`，实际目录通常是 `gcc_64`；macOS 下载参数是 `clang_64`，实际目录是 `macos`。
 
 CI 固定使用 Python 3.12 安装和运行 `aqtinstall`，避免 GitHub runner 上最新 Python 版本带来的兼容性波动。
 
