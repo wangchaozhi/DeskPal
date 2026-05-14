@@ -39,6 +39,11 @@ jobs:
             qt_arch: clang_64
             qt_dir: clang_64
             asset_name: DeskPal-macos-x64
+          - os: macos-15
+            aqt_host: mac
+            qt_arch: clang_arm64
+            qt_dir: clang_arm64
+            asset_name: DeskPal-macos-arm64
           - os: ubuntu-22.04
             aqt_host: linux
             qt_arch: linux_gcc_64
@@ -152,12 +157,14 @@ jobs:
             exit 1
           fi
 
-          macdeployqt "${app_path}" -qmldir="${PWD}/qml"
-          mkdir -p "package/${{ matrix.asset_name }}"
-          cp -R "${app_path}" "package/${{ matrix.asset_name }}/"
-          cp README.md "package/${{ matrix.asset_name }}/"
-          cp -R docs "package/${{ matrix.asset_name }}/"
-          ditto -c -k --sequesterRsrc --keepParent "package/${{ matrix.asset_name }}" "package/${{ matrix.asset_name }}.zip"
+          macdeployqt "${app_path}" -qmldir="${PWD}/qml" -dmg
+          dmg_path="$(find build -maxdepth 5 -name "${APP_NAME}.dmg" -print -quit)"
+          if [ -z "${dmg_path}" ]; then
+            echo "${APP_NAME}.dmg was not found." >&2
+            exit 1
+          fi
+
+          cp "${dmg_path}" "package/${{ matrix.asset_name }}.dmg"
 
       - name: Package Linux
         if: runner.os == 'Linux'
@@ -218,6 +225,7 @@ jobs:
             package/*.zip
             package/*.tar.gz
             package/*.AppImage
+            package/*.dmg
           if-no-files-found: error
 
   release:

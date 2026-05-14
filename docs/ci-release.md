@@ -7,7 +7,8 @@
 CI 支持手动输入发布 tag，并自动完成以下工作：
 
 - 构建 Windows x64 版本。
-- 构建 macOS x64 版本。
+- 构建 macOS x64 DMG。
+- 构建 macOS Apple Silicon arm64 DMG。
 - 构建 Linux x64 AppImage。
 - 缓存 Qt 安装目录，减少重复下载时间。
 - 上传构建产物为 GitHub Actions artifacts。
@@ -41,7 +42,8 @@ Actions -> Build and Release -> Run workflow
 
 ```text
 DeskPal-windows-x64.zip
-DeskPal-macos-x64.zip
+DeskPal-macos-x64.dmg
+DeskPal-macos-arm64.dmg
 DeskPal-linux-x64.AppImage
 ```
 
@@ -50,7 +52,8 @@ DeskPal-linux-x64.AppImage
 Windows、macOS 和 Linux 分别使用以下部署方式：
 
 - Windows：`windows-2022` runner + `Visual Studio 17 2022` + `windeployqt`
-- macOS：`macos-15-intel` runner + `macdeployqt`
+- macOS x64：`macos-15-intel` runner + Qt `clang_64` + `macdeployqt -dmg`
+- macOS arm64：`macos-15` runner + Qt `clang_arm64` + `macdeployqt -dmg`
 - Linux：`linuxdeploy` + `linuxdeploy-plugin-qt` 生成 AppImage
 
 Linux 使用 `ubuntu-22.04` 构建 AppImage，以获得比更新系统镜像更好的运行兼容性。
