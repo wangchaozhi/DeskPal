@@ -30,6 +30,7 @@ public:
     Q_INVOKABLE void showContextMenu();
     Q_INVOKABLE void showWindow();
     Q_INVOKABLE void hideWindow();
+    Q_INVOKABLE void setPetVisible(bool visible);
     Q_INVOKABLE void quit();
 
 signals:
@@ -44,4 +45,5 @@ private:
     SettingsStore *m_settings = nullptr;
     TranslationManager *m_translations = nullptr;
     TrayController *m_tray = nullptr;
+    bool m_petVisible = true;
 };

@@ -19,11 +19,12 @@ public:
 
     void setAlwaysOnTop(bool enabled);
     void setLanguage(const QString &language);
+    void setPetVisible(bool visible);
     void showContextMenu();
 
 signals:
     void showRequested();
-    void hideRequested();
+    void toggleVisibilityRequested();
     void resetPositionRequested();
     void alwaysOnTopToggled(bool enabled);
     void languageChanged(const QString &language);
@@ -36,8 +37,7 @@ private:
     QScopedPointer<QSystemTrayIcon> m_trayIcon;
     QMenu *m_trayMenu = nullptr;
     QMenu *m_languageMenu = nullptr;
-    QAction *m_showAction = nullptr;
-    QAction *m_hideAction = nullptr;
+    QAction *m_toggleVisibilityAction = nullptr;
     QAction *m_alwaysOnTopAction = nullptr;
     QAction *m_resetAction = nullptr;
     QAction *m_quitAction = nullptr;
@@ -45,4 +45,5 @@ private:
     QAction *m_systemLanguageAction = nullptr;
     QAction *m_englishLanguageAction = nullptr;
     QAction *m_chineseLanguageAction = nullptr;
+    bool m_petVisible = true;
 };

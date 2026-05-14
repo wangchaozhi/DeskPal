@@ -18,9 +18,16 @@ AppController::AppController(QObject *parent)
     m_alwaysOnTop = m_settings->alwaysOnTop();
     m_tray->setAlwaysOnTop(m_alwaysOnTop);
     m_tray->setLanguage(m_translations->language());
+    m_tray->setPetVisible(m_petVisible);
 
     connect(m_tray, &TrayController::showRequested, this, &AppController::showWindow);
-    connect(m_tray, &TrayController::hideRequested, this, &AppController::hideWindow);
+    connect(m_tray, &TrayController::toggleVisibilityRequested, this, [this]() {
+        if (m_petVisible) {
+            hideWindow();
+        } else {
+            showWindow();
+        }
+    });
     connect(m_tray, &TrayController::resetPositionRequested, this, &AppController::resetWindowPosition);
     connect(m_tray, &TrayController::alwaysOnTopToggled, this, &AppController::setAlwaysOnTop);
     connect(m_tray, &TrayController::languageChanged, this, &AppController::setLanguage);
@@ -102,6 +109,16 @@ void AppController::showWindow()
 void AppController::hideWindow()
 {
     emit hideRequested();
+}
+
+void AppController::setPetVisible(bool visible)
+{
+    if (m_petVisible == visible) {
+        return;
+    }
+
+    m_petVisible = visible;
+    m_tray->setPetVisible(m_petVisible);
 }
 
 void AppController::quit()

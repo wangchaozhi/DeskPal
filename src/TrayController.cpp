@@ -47,6 +47,16 @@ void TrayController::setLanguage(const QString &language)
     retranslate();
 }
 
+void TrayController::setPetVisible(bool visible)
+{
+    if (m_petVisible == visible) {
+        return;
+    }
+
+    m_petVisible = visible;
+    retranslate();
+}
+
 void TrayController::showContextMenu()
 {
     if (m_trayMenu) {
@@ -60,11 +70,8 @@ void TrayController::createMenu()
 
     m_trayMenu = new QMenu();
 
-    m_showAction = m_trayMenu->addAction(QString());
-    connect(m_showAction, &QAction::triggered, this, &TrayController::showRequested);
-
-    m_hideAction = m_trayMenu->addAction(QString());
-    connect(m_hideAction, &QAction::triggered, this, &TrayController::hideRequested);
+    m_toggleVisibilityAction = m_trayMenu->addAction(QString());
+    connect(m_toggleVisibilityAction, &QAction::triggered, this, &TrayController::toggleVisibilityRequested);
 
     m_alwaysOnTopAction = m_trayMenu->addAction(QString());
     m_alwaysOnTopAction->setCheckable(true);
@@ -115,8 +122,7 @@ void TrayController::createMenu()
 
 void TrayController::retranslate()
 {
-    m_showAction->setText(tr("Show Pet"));
-    m_hideAction->setText(tr("Hide Pet"));
+    m_toggleVisibilityAction->setText(m_petVisible ? tr("Hide Pet") : tr("Show Pet"));
     m_alwaysOnTopAction->setText(tr("Always on Top"));
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));

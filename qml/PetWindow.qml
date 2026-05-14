@@ -17,7 +17,10 @@ Window {
         x = position.x
         y = position.y
         clampToScreen()
+        appController.setPetVisible(visible)
     }
+
+    onVisibleChanged: appController.setPetVisible(visible)
 
     function clampToScreen() {
         const screen = appController.availableGeometry(x + width / 2, y + height / 2)
