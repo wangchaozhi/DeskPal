@@ -16,6 +16,7 @@ public:
 
     Q_INVOKABLE void triggerAction(const QString &action, int durationMs = 0);
     Q_INVOKABLE void setDragging(bool dragging);
+    Q_INVOKABLE void setWalking(bool walking);
     void setIdleActions(const QStringList &actions);
 
 signals:
@@ -32,4 +33,5 @@ private:
     QTimer m_restoreTimer;
     QTimer m_idleTimer;
     bool m_dragging = false;
+    bool m_walking = false;
 };

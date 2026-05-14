@@ -7,6 +7,7 @@ constexpr auto kIdleAction = "idle";
 constexpr auto kHappyAction = "happy";
 constexpr auto kSleepyAction = "sleepy";
 constexpr auto kDraggingAction = "dragging";
+constexpr auto kWalkingAction = "walking";
 constexpr int kDefaultActionDurationMs = 1800;
 } // namespace
 
@@ -75,6 +76,26 @@ void ActionController::setDragging(bool dragging)
     }
 }
 
+void ActionController::setWalking(bool walking)
+{
+    if (m_walking == walking) {
+        return;
+    }
+
+    m_walking = walking;
+
+    if (m_dragging) {
+        return;
+    }
+
+    if (m_walking) {
+        m_restoreTimer.stop();
+        setCurrentAction(QString::fromLatin1(kWalkingAction));
+    } else {
+        restoreIdle();
+    }
+}
+
 void ActionController::setCurrentAction(const QString &action)
 {
     if (m_currentAction == action) {
@@ -102,7 +123,9 @@ void ActionController::triggerRandomIdleAction()
 
 void ActionController::restoreIdle()
 {
-    if (!m_dragging) {
-        setCurrentAction(QString::fromLatin1(kIdleAction));
+    if (m_dragging) {
+        return;
     }
+
+    setCurrentAction(QString::fromLatin1(m_walking ? kWalkingAction : kIdleAction));
 }

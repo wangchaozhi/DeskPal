@@ -117,11 +117,9 @@ AppController::AppController(QObject *parent)
     m_currentPetId = m_petCatalog->contains(m_settings->currentPetId())
             ? m_settings->currentPetId()
             : m_petCatalog->defaultPetId();
-    m_renderMode = m_petCatalog->petById(m_currentPetId).type;
     m_tray->setAlwaysOnTop(m_alwaysOnTop);
     m_tray->setLanguage(m_translations->language());
     m_tray->setPetVisible(m_petVisible);
-    m_tray->setRenderMode(m_renderMode);
     m_tray->setPets(m_petCatalog->pets());
     m_tray->setCurrentPet(m_currentPetId);
 
@@ -136,7 +134,6 @@ AppController::AppController(QObject *parent)
     connect(m_tray, &TrayController::resetPositionRequested, this, &AppController::resetWindowPosition);
     connect(m_tray, &TrayController::alwaysOnTopToggled, this, &AppController::setAlwaysOnTop);
     connect(m_tray, &TrayController::languageChanged, this, &AppController::setLanguage);
-    connect(m_tray, &TrayController::renderModeChanged, this, &AppController::setRenderMode);
     connect(m_tray, &TrayController::petChanged, this, &AppController::setCurrentPetId);
     connect(m_tray, &TrayController::settingsRequested, this, &AppController::settingsRequested);
     connect(m_tray, &TrayController::quitRequested, this, &AppController::quit);
@@ -201,24 +198,6 @@ QString AppController::petAction() const
     return m_actions->currentAction();
 }
 
-QString AppController::renderMode() const
-{
-    return m_renderMode;
-}
-
-void AppController::setRenderMode(const QString &renderMode)
-{
-    const QString normalizedMode = renderMode == QStringLiteral("3d") ? QStringLiteral("3d") : QStringLiteral("2d");
-    if (m_renderMode == normalizedMode) {
-        return;
-    }
-
-    m_renderMode = normalizedMode;
-    m_settings->setRenderMode(m_renderMode);
-    m_tray->setRenderMode(m_renderMode);
-    emit renderModeChanged();
-}
-
 QString AppController::currentPetId() const
 {
     return m_currentPetId;
@@ -235,12 +214,10 @@ void AppController::setCurrentPetId(const QString &petId)
     }
 
     m_currentPetId = petId;
-    const PetProfile pet = m_petCatalog->petById(m_currentPetId);
     m_settings->setCurrentPetId(m_currentPetId);
     m_tray->setCurrentPet(m_currentPetId);
     applyPetToActionController();
     emit currentPetChanged();
-    setRenderMode(pet.type);
 }
 
 QString AppController::currentPetName() const
@@ -324,6 +301,21 @@ void AppController::setAutoStart(bool enabled)
     emit autoStartChanged();
 }
 
+bool AppController::wanderEnabled() const
+{
+    return m_settings->wanderEnabled();
+}
+
+void AppController::setWanderEnabled(bool enabled)
+{
+    if (m_settings->wanderEnabled() == enabled) {
+        return;
+    }
+
+    m_settings->setWanderEnabled(enabled);
+    emit wanderEnabledChanged();
+}
+
 QString AppController::lastError() const
 {
     return m_lastError;
@@ -388,6 +380,11 @@ void AppController::triggerPetAction(const QString &action, int durationMs)
 void AppController::setPetDragging(bool dragging)
 {
     m_actions->setDragging(dragging);
+}
+
+void AppController::setPetWalking(bool walking)
+{
+    m_actions->setWalking(walking);
 }
 
 QString AppController::currentPetActionSource(const QString &action) const

@@ -22,9 +22,6 @@ public:
     QString language() const;
     void setLanguage(const QString &language);
 
-    QString renderMode() const;
-    void setRenderMode(const QString &renderMode);
-
     QString currentPetId() const;
     void setCurrentPetId(const QString &petId);
 
@@ -33,4 +30,7 @@ public:
 
     bool autoStartEnabled() const;
     void setAutoStartEnabled(bool enabled);
+
+    bool wanderEnabled() const;
+    void setWanderEnabled(bool enabled);
 };

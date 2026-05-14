@@ -103,6 +103,10 @@
         <translation>开机自启</translation>
     </message>
     <message>
+        <source>Wander automatically</source>
+        <translation>自动漫步</translation>
+    </message>
+    <message>
         <source>Action Preview</source>
         <translation>动作预览</translation>
     </message>
@@ -301,18 +305,6 @@
     <message>
         <source>Language</source>
         <translation>语言</translation>
-    </message>
-    <message>
-        <source>Render Mode</source>
-        <translation>渲染模式</translation>
-    </message>
-    <message>
-        <source>2D Pet</source>
-        <translation>2D 桌宠</translation>
-    </message>
-    <message>
-        <source>3D Pet</source>
-        <translation>3D 桌宠</translation>
     </message>
     <message>
         <source>Pet Settings</source>

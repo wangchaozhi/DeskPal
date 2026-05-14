@@ -13,6 +13,10 @@ Window {
            | Qt.Tool
            | (appController.alwaysOnTop ? Qt.WindowStaysOnTopHint : 0)
 
+    property bool facingLeft: false
+    property real walkTargetX: x
+    readonly property int edgeSnapMargin: 72
+
     Component.onCompleted: {
         const position = appController.windowPosition()
         x = position.x
@@ -21,7 +25,12 @@ Window {
         appController.setPetVisible(visible)
     }
 
-    onVisibleChanged: appController.setPetVisible(visible)
+    onVisibleChanged: {
+        appController.setPetVisible(visible)
+        if (!visible) {
+            stopWalking()
+        }
+    }
 
     function clampToScreen() {
         const screen = appController.availableGeometry(x + width / 2, y + height / 2)
@@ -33,6 +42,48 @@ Window {
         speechLabel.text = appController.randomSpeech()
         speechBubble.opacity = 1
         speechTimer.restart()
+    }
+
+    function walkTo(targetX) {
+        if (dragArea.pressed || !petWindow.visible) {
+            return
+        }
+
+        const screen = appController.availableGeometry(x + width / 2, y + height / 2)
+        const minX = screen.x
+        const maxX = screen.x + screen.width - width
+        let clamped = Math.max(minX, Math.min(targetX, maxX))
+
+        if (clamped - minX < petWindow.edgeSnapMargin) {
+            clamped = minX
+        } else if (maxX - clamped < petWindow.edgeSnapMargin) {
+            clamped = maxX
+        }
+
+        if (Math.abs(clamped - petWindow.x) < 2) {
+            return
+        }
+
+        petWindow.facingLeft = clamped < petWindow.x
+        petWindow.walkTargetX = clamped
+        appController.setPetWalking(true)
+        walkAnimation.restart()
+    }
+
+    function startWander() {
+        if (dragArea.pressed || walkAnimation.running || !petWindow.visible) {
+            return
+        }
+
+        const screen = appController.availableGeometry(x + width / 2, y + height / 2)
+        const minX = screen.x
+        const maxX = screen.x + screen.width - width
+        walkTo(minX + Math.random() * Math.max(1, maxX - minX))
+    }
+
+    function stopWalking() {
+        walkAnimation.stop()
+        appController.setPetWalking(false)
     }
 
     Connections {
@@ -49,6 +100,7 @@ Window {
         }
 
         function onResetPositionRequested() {
+            petWindow.stopWalking()
             const position = appController.windowPosition()
             petWindow.x = position.x
             petWindow.y = position.y
@@ -66,6 +118,36 @@ Window {
         function onCurrentPetChanged() {
             petWindow.clampToScreen()
         }
+
+        function onWanderEnabledChanged() {
+            if (!appController.wanderEnabled) {
+                petWindow.stopWalking()
+            }
+        }
+    }
+
+    Timer {
+        id: wanderTimer
+        interval: 7000 + Math.round(Math.random() * 9000)
+        repeat: true
+        running: appController.wanderEnabled && petWindow.visible && !dragArea.pressed
+        onTriggered: {
+            interval = 7000 + Math.round(Math.random() * 9000)
+            petWindow.startWander()
+        }
+    }
+
+    NumberAnimation {
+        id: walkAnimation
+        target: petWindow
+        property: "x"
+        to: petWindow.walkTargetX
+        duration: Math.max(400, Math.abs(petWindow.walkTargetX - petWindow.x) * 14)
+        easing.type: Easing.InOutQuad
+        onStopped: {
+            appController.setPetWalking(false)
+            appController.saveWindowPosition(petWindow.x, petWindow.y)
+        }
     }
 
     Loader {
@@ -73,7 +155,15 @@ Window {
         anchors.centerIn: parent
         scale: appController.currentPetScale > 0 ? appController.currentPetScale : 1.0
         transformOrigin: Item.Center
-        sourceComponent: appController.currentPetType === "3d" || appController.renderMode === "3d" ? pet3DComponent : pet2DComponent
+        sourceComponent: appController.currentPetType === "3d" ? pet3DComponent : pet2DComponent
+
+        transform: Scale {
+            origin.x: petRenderer.width / 2
+            origin.y: petRenderer.height / 2
+            xScale: petWindow.facingLeft ? -1 : 1
+
+            Behavior on xScale { NumberAnimation { duration: 160 } }
+        }
     }
 
     Component {
@@ -152,8 +242,11 @@ Window {
 
         onPressed: mouse => {
             if (mouse.button === Qt.LeftButton) {
+                petWindow.stopWalking()
                 dragOffset = Qt.point(mouse.x, mouse.y)
                 appController.setPetDragging(true)
+            } else if (mouse.button === Qt.RightButton) {
+                appController.showContextMenu()
             }
         }
 
@@ -169,13 +262,21 @@ Window {
             if (mouse.button === Qt.LeftButton) {
                 appController.setPetDragging(false)
                 appController.saveWindowPosition(petWindow.x, petWindow.y)
+
+                const screen = appController.availableGeometry(petWindow.x + petWindow.width / 2,
+                                                               petWindow.y + petWindow.height / 2)
+                const minX = screen.x
+                const maxX = screen.x + screen.width - petWindow.width
+                if (petWindow.x - minX < petWindow.edgeSnapMargin) {
+                    petWindow.walkTo(minX)
+                } else if (maxX - petWindow.x < petWindow.edgeSnapMargin) {
+                    petWindow.walkTo(maxX)
+                }
             }
         }
 
         onClicked: mouse => {
-            if (mouse.button === Qt.RightButton) {
-                appController.showContextMenu()
-            } else if (mouse.button === Qt.LeftButton) {
+            if (mouse.button === Qt.LeftButton) {
                 appController.triggerPetAction("happy", 1600)
                 petWindow.showSpeech()
             }

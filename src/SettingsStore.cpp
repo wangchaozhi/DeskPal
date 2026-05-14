@@ -2,6 +2,8 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QSettings>
 
 namespace {
@@ -10,19 +12,64 @@ constexpr auto kSettingsApp = "DeskPal";
 constexpr auto kWindowPosition = "window/position";
 constexpr auto kAlwaysOnTop = "window/alwaysOnTop";
 constexpr auto kLanguage = "ui/language";
-constexpr auto kRenderMode = "pet/renderMode";
 constexpr auto kCurrentPetId = "pet/currentPetId";
 constexpr auto kPetOpacity = "pet/opacity";
+constexpr auto kWanderEnabled = "pet/wander";
 constexpr auto kDefaultWindowPositionX = 120;
 constexpr auto kDefaultWindowPositionY = 120;
 constexpr auto kDefaultLanguage = "system";
-constexpr auto kDefaultRenderMode = "2d";
 constexpr auto kDefaultPetId = "classic_2d";
 constexpr auto kDefaultPetOpacity = 1.0;
 
 #ifdef Q_OS_WIN
 constexpr auto kRunKey = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
 constexpr auto kRunValueName = "DeskPal";
+#endif
+
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
+QString autoStartFilePath()
+{
+#if defined(Q_OS_MACOS)
+    return QDir::homePath() + QStringLiteral("/Library/LaunchAgents/com.deskpal.autostart.plist");
+#else
+    QString configDir = qEnvironmentVariable("XDG_CONFIG_HOME");
+    if (configDir.isEmpty()) {
+        configDir = QDir::homePath() + QStringLiteral("/.config");
+    }
+    return configDir + QStringLiteral("/autostart/DeskPal.desktop");
+#endif
+}
+
+QString autoStartFileContent()
+{
+    const QString executable = QCoreApplication::applicationFilePath();
+#if defined(Q_OS_MACOS)
+    return QStringLiteral(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" "
+        "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+        "<plist version=\"1.0\">\n"
+        "<dict>\n"
+        "    <key>Label</key>\n"
+        "    <string>com.deskpal.autostart</string>\n"
+        "    <key>ProgramArguments</key>\n"
+        "    <array>\n"
+        "        <string>%1</string>\n"
+        "    </array>\n"
+        "    <key>RunAtLoad</key>\n"
+        "    <true/>\n"
+        "</dict>\n"
+        "</plist>\n").arg(executable);
+#else
+    return QStringLiteral(
+        "[Desktop Entry]\n"
+        "Type=Application\n"
+        "Name=DeskPal\n"
+        "Exec=\"%1\"\n"
+        "Terminal=false\n"
+        "X-GNOME-Autostart-enabled=true\n").arg(executable);
+#endif
+}
 #endif
 } // namespace
 
@@ -80,18 +127,6 @@ void SettingsStore::setLanguage(const QString &language)
     settings.setValue(kLanguage, language);
 }
 
-QString SettingsStore::renderMode() const
-{
-    QSettings settings;
-    return settings.value(kRenderMode, QString::fromLatin1(kDefaultRenderMode)).toString();
-}
-
-void SettingsStore::setRenderMode(const QString &renderMode)
-{
-    QSettings settings;
-    settings.setValue(kRenderMode, renderMode);
-}
-
 QString SettingsStore::currentPetId() const
 {
     QSettings settings;
@@ -123,11 +158,25 @@ void SettingsStore::setPetOpacity(qreal opacity)
     settings.setValue(kPetOpacity, opacity);
 }
 
+bool SettingsStore::wanderEnabled() const
+{
+    QSettings settings;
+    return settings.value(kWanderEnabled, true).toBool();
+}
+
+void SettingsStore::setWanderEnabled(bool enabled)
+{
+    QSettings settings;
+    settings.setValue(kWanderEnabled, enabled);
+}
+
 bool SettingsStore::autoStartEnabled() const
 {
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
     QSettings runKeys(QString::fromLatin1(kRunKey), QSettings::NativeFormat);
     return runKeys.contains(QString::fromLatin1(kRunValueName));
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
+    return QFileInfo::exists(autoStartFilePath());
 #else
     return false;
 #endif
@@ -135,13 +184,25 @@ bool SettingsStore::autoStartEnabled() const
 
 void SettingsStore::setAutoStartEnabled(bool enabled)
 {
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
     QSettings runKeys(QString::fromLatin1(kRunKey), QSettings::NativeFormat);
     if (enabled) {
         const QString executable = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
         runKeys.setValue(QString::fromLatin1(kRunValueName), QStringLiteral("\"%1\"").arg(executable));
     } else {
         runKeys.remove(QString::fromLatin1(kRunValueName));
+    }
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
+    const QString path = autoStartFilePath();
+    if (enabled) {
+        QDir().mkpath(QFileInfo(path).absolutePath());
+        QFile file(path);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            file.write(autoStartFileContent().toUtf8());
+            file.close();
+        }
+    } else {
+        QFile::remove(path);
     }
 #else
     Q_UNUSED(enabled);

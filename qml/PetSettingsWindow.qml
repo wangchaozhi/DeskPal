@@ -171,6 +171,12 @@ Window {
                 onToggled: appController.autoStart = checked
             }
 
+            CheckBox {
+                text: qsTr("Wander automatically")
+                checked: appController.wanderEnabled
+                onToggled: appController.wanderEnabled = checked
+            }
+
             Label {
                 Layout.fillWidth: true
                 text: root.statusMessage

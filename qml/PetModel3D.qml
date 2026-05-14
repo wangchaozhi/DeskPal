@@ -45,6 +45,14 @@ Item {
                    : root.pressed ? Qt.vector3d(0.96, 1.04, 0.96)
                    : Qt.vector3d(1, 1, 1)
 
+            SequentialAnimation on eulerRotation.z {
+                running: root.action === "walking"
+                loops: Animation.Infinite
+                NumberAnimation { to: 6; duration: 260; easing.type: Easing.InOutSine }
+                NumberAnimation { to: -6; duration: 260; easing.type: Easing.InOutSine }
+                NumberAnimation { to: 0; duration: 130; easing.type: Easing.InOutSine }
+            }
+
             SequentialAnimation on eulerRotation.y {
                 loops: Animation.Infinite
                 running: root.action !== "dragging"

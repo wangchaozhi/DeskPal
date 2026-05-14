@@ -57,15 +57,6 @@ void TrayController::setPetVisible(bool visible)
     retranslate();
 }
 
-void TrayController::setRenderMode(const QString &renderMode)
-{
-    QAction *targetAction = renderMode == QStringLiteral("3d") ? m_render3DAction : m_render2DAction;
-    if (targetAction) {
-        const QSignalBlocker blocker(m_renderModeActionGroup);
-        targetAction->setChecked(true);
-    }
-}
-
 void TrayController::setPets(const QVector<PetProfile> &pets)
 {
     if (!m_petMenu || !m_petActionGroup) {
@@ -125,24 +116,6 @@ void TrayController::createMenu()
     m_alwaysOnTopAction->setCheckable(true);
     connect(m_alwaysOnTopAction, &QAction::toggled, this, &TrayController::alwaysOnTopToggled);
 
-    m_renderModeMenu = m_trayMenu->addMenu(QString());
-    m_renderModeActionGroup = new QActionGroup(this);
-    m_renderModeActionGroup->setExclusive(true);
-
-    m_render2DAction = m_renderModeMenu->addAction(QString());
-    m_render2DAction->setCheckable(true);
-    m_render2DAction->setData(QStringLiteral("2d"));
-    m_renderModeActionGroup->addAction(m_render2DAction);
-
-    m_render3DAction = m_renderModeMenu->addAction(QString());
-    m_render3DAction->setCheckable(true);
-    m_render3DAction->setData(QStringLiteral("3d"));
-    m_renderModeActionGroup->addAction(m_render3DAction);
-
-    connect(m_renderModeActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
-        emit renderModeChanged(action->data().toString());
-    });
-
     m_settingsAction = m_trayMenu->addAction(QString());
     connect(m_settingsAction, &QAction::triggered, this, &TrayController::settingsRequested);
 
@@ -180,7 +153,9 @@ void TrayController::createMenu()
     m_trayIcon.reset(new QSystemTrayIcon(icon));
     m_trayIcon->setContextMenu(m_trayMenu);
     connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
-        if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
+        if (reason == QSystemTrayIcon::DoubleClick) {
+            emit toggleVisibilityRequested();
+        } else if (reason == QSystemTrayIcon::Trigger) {
             emit showRequested();
         }
     });
@@ -194,9 +169,6 @@ void TrayController::retranslate()
     m_toggleVisibilityAction->setText(m_petVisible ? tr("Hide Pet") : tr("Show Pet"));
     m_petMenu->setTitle(tr("Pet"));
     m_alwaysOnTopAction->setText(tr("Always on Top"));
-    m_renderModeMenu->setTitle(tr("Render Mode"));
-    m_render2DAction->setText(tr("2D Pet"));
-    m_render3DAction->setText(tr("3D Pet"));
     m_settingsAction->setText(tr("Pet Settings"));
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));

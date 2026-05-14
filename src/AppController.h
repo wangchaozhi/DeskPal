@@ -19,7 +19,6 @@ class AppController : public QObject
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY alwaysOnTopChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
     Q_PROPERTY(QString petAction READ petAction NOTIFY petActionChanged)
-    Q_PROPERTY(QString renderMode READ renderMode WRITE setRenderMode NOTIFY renderModeChanged)
     Q_PROPERTY(QString currentPetId READ currentPetId WRITE setCurrentPetId NOTIFY currentPetChanged)
     Q_PROPERTY(QString currentPetName READ currentPetName NOTIFY currentPetChanged)
     Q_PROPERTY(QString currentPetType READ currentPetType NOTIFY currentPetChanged)
@@ -32,6 +31,7 @@ class AppController : public QObject
     Q_PROPERTY(qreal currentPetScale READ currentPetScale NOTIFY currentPetChanged)
     Q_PROPERTY(qreal petOpacity READ petOpacity WRITE setPetOpacity NOTIFY petOpacityChanged)
     Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
+    Q_PROPERTY(bool wanderEnabled READ wanderEnabled WRITE setWanderEnabled NOTIFY wanderEnabledChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
@@ -43,8 +43,6 @@ public:
     QString language() const;
     void setLanguage(const QString &language);
     QString petAction() const;
-    QString renderMode() const;
-    void setRenderMode(const QString &renderMode);
     QString currentPetId() const;
     void setCurrentPetId(const QString &petId);
     QString currentPetName() const;
@@ -60,6 +58,8 @@ public:
     void setPetOpacity(qreal opacity);
     bool autoStart() const;
     void setAutoStart(bool enabled);
+    bool wanderEnabled() const;
+    void setWanderEnabled(bool enabled);
     QString lastError() const;
 
     Q_INVOKABLE QPoint windowPosition() const;
@@ -72,6 +72,7 @@ public:
     Q_INVOKABLE void setPetVisible(bool visible);
     Q_INVOKABLE void triggerPetAction(const QString &action, int durationMs = 0);
     Q_INVOKABLE void setPetDragging(bool dragging);
+    Q_INVOKABLE void setPetWalking(bool walking);
     Q_INVOKABLE QString currentPetActionSource(const QString &action) const;
     Q_INVOKABLE QString resolvePetResource(const QString &relativePath) const;
     Q_INVOKABLE QStringList currentPetFrameUrls(const QString &action) const;
@@ -92,10 +93,10 @@ signals:
     void alwaysOnTopChanged();
     void languageChanged();
     void petActionChanged();
-    void renderModeChanged();
     void currentPetChanged();
     void petOpacityChanged();
     void autoStartChanged();
+    void wanderEnabledChanged();
     void lastErrorChanged();
     void showRequested();
     void hideRequested();
@@ -107,7 +108,6 @@ private:
     void setLastError(const QString &error);
 
     bool m_alwaysOnTop = true;
-    QString m_renderMode = QStringLiteral("2d");
     QString m_currentPetId = QStringLiteral("classic_2d");
     QString m_lastError;
     SettingsStore *m_settings = nullptr;

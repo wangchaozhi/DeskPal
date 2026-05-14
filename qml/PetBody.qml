@@ -9,6 +9,8 @@ Item {
     width: 180
     height: 210
 
+    onActionChanged: if (action !== "walking") rotation = 0
+
     transform: Scale {
         origin.x: root.width / 2
         origin.y: root.height
@@ -21,8 +23,15 @@ Item {
 
     SequentialAnimation on y {
         loops: Animation.Infinite
-        NumberAnimation { to: root.action === "sleepy" ? -2 : root.action === "happy" ? -10 : -5; duration: root.action === "happy" ? 420 : 1200; easing.type: Easing.InOutSine }
-        NumberAnimation { to: 0; duration: root.action === "happy" ? 420 : 1200; easing.type: Easing.InOutSine }
+        NumberAnimation { to: root.action === "sleepy" ? -2 : root.action === "happy" ? -10 : root.action === "walking" ? -8 : -5; duration: root.action === "happy" || root.action === "walking" ? 420 : 1200; easing.type: Easing.InOutSine }
+        NumberAnimation { to: 0; duration: root.action === "happy" || root.action === "walking" ? 420 : 1200; easing.type: Easing.InOutSine }
+    }
+
+    SequentialAnimation on rotation {
+        running: root.action === "walking"
+        loops: Animation.Infinite
+        NumberAnimation { to: 5; duration: 260; easing.type: Easing.InOutSine }
+        NumberAnimation { to: -5; duration: 260; easing.type: Easing.InOutSine }
     }
 
     Rectangle {
