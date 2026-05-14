@@ -50,7 +50,7 @@ DeskPal-linux-x64.AppImage
 Windows、macOS 和 Linux 分别使用以下部署方式：
 
 - Windows：`windows-2022` runner + `Visual Studio 17 2022` + `windeployqt`
-- macOS：`macdeployqt`
+- macOS：`macos-15-intel` runner + `macdeployqt`
 - Linux：`linuxdeploy` + `linuxdeploy-plugin-qt` 生成 AppImage
 
 Linux 使用 `ubuntu-22.04` 构建 AppImage，以获得比更新系统镜像更好的运行兼容性。
