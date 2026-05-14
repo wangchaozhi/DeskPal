@@ -10,6 +10,12 @@
 PetCatalog::PetCatalog(QObject *parent)
     : QObject(parent)
 {
+    reload();
+}
+
+void PetCatalog::reload()
+{
+    m_pets.clear();
     loadBuiltInPets();
     loadExternalPets();
 }

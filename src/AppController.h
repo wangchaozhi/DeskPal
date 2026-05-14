@@ -62,6 +62,7 @@ public:
     Q_INVOKABLE QString resolvePetResourceForPet(const QString &petId, const QString &relativePath) const;
     Q_INVOKABLE QStringList petFrameUrls(const QString &petId, const QString &action) const;
     Q_INVOKABLE QVariantList petProfiles() const;
+    Q_INVOKABLE QVariantList reloadPetProfiles();
     Q_INVOKABLE void quit();
 
 signals:

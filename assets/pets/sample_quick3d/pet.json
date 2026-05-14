@@ -1,0 +1,13 @@
+{
+  "id": "sample_quick3d",
+  "name": "Sample Quick3D",
+  "type": "3d",
+  "renderer": "quick3d",
+  "source": "SampleQuick3DPet.qml",
+  "actions": {
+    "idle": "SampleQuick3DPet.qml",
+    "happy": "SampleQuick3DPet.qml",
+    "sleepy": "SampleQuick3DPet.qml",
+    "dragging": "SampleQuick3DPet.qml"
+  }
+}

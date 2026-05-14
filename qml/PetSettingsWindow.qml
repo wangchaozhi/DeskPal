@@ -27,7 +27,7 @@ Window {
     }
 
     function refreshPets() {
-        pets = appController.petProfiles()
+        pets = appController.reloadPetProfiles()
         selectedIndex = findCurrentPetIndex()
     }
 
@@ -105,8 +105,8 @@ Window {
 
                             Label {
                                 width: parent.width
-                                text: modelData.type.toUpperCase() + " / " + modelData.renderer
-                                color: "#64748b"
+                                text: (modelData.isValid ? qsTr("Ready") : qsTr("Needs attention")) + " - " + modelData.type.toUpperCase() + " / " + modelData.renderer
+                                color: modelData.isValid ? "#64748b" : "#b45309"
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
@@ -169,6 +169,12 @@ Window {
 
                             DetailLabel { text: qsTr("Actions") }
                             DetailValue { text: root.selectedPet.actionText || "" }
+
+                            DetailLabel { text: qsTr("Status") }
+                            DetailValue {
+                                text: root.selectedPet.isValid ? qsTr("Ready") : qsTr("Needs attention")
+                                color: root.selectedPet.isValid ? "#2f7d32" : "#b45309"
+                            }
                         }
                     }
                 }
@@ -197,8 +203,33 @@ Window {
                             readOnly: true
                             wrapMode: TextEdit.WrapAnywhere
                             text: root.selectedPet.basePath && root.selectedPet.basePath.length > 0
-                                  ? root.selectedPet.basePath
-                                  : qsTr("Built-in pet")
+                                  ? root.selectedPet.basePath + "\n\n" + (root.selectedPet.issueText || "")
+                                  : qsTr("Built-in pet") + "\n\n" + (root.selectedPet.issueText || "")
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 10
+
+                            Button {
+                                text: qsTr("Idle")
+                                onClicked: appController.triggerPetAction("idle", 900)
+                            }
+
+                            Button {
+                                text: qsTr("Happy")
+                                onClicked: appController.triggerPetAction("happy", 1600)
+                            }
+
+                            Button {
+                                text: qsTr("Sleepy")
+                                onClicked: appController.triggerPetAction("sleepy", 1800)
+                            }
+
+                            Button {
+                                text: qsTr("Dragging")
+                                onClicked: appController.triggerPetAction("dragging", 1000)
+                            }
                         }
 
                         RowLayout {

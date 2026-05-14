@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="210" viewBox="0 0 180 210">
+  <ellipse cx="90" cy="190" rx="55" ry="10" fill="#000000" opacity="0.16"/>
+  <circle cx="90" cy="112" r="58" fill="#d8d3eb" stroke="#3a2c1a" stroke-width="5"/>
+  <rect x="58" y="94" width="28" height="7" rx="3.5" fill="#2f2519"/>
+  <rect x="96" y="94" width="28" height="7" rx="3.5" fill="#2f2519"/>
+  <rect x="75" y="128" width="30" height="12" rx="6" fill="#df7f6c"/>
+  <text x="125" y="58" font-family="Arial" font-size="22" fill="#65558f">Z</text>
+  <text x="143" y="40" font-family="Arial" font-size="15" fill="#65558f">Z</text>
+</svg>

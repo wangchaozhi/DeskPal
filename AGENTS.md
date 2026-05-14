@@ -15,6 +15,7 @@ DeskPal 是一个 Qt 6 / Qt Quick / C++20 桌面宠物应用。
 - 动作系统：`idle`、`happy`、`sleepy`、`dragging`
 - 可替换宠物系统：内置宠物 + 外部 `assets/pets/*/pet.json`
 - 宠物配置可视化面板：托盘菜单 `Pet Settings`
+- 示例宠物包：`assets/pets/sample_svg_2d` 和 `assets/pets/sample_quick3d`
 - GitHub Actions 手动发布跨平台资产
 
 ## 常用命令
@@ -183,6 +184,7 @@ translations/DeskPal_zh_CN.ts
 - 展示当前选中宠物的基础配置。
 - 提供 2D/3D 预览区域。
 - 支持切换当前宠物。
+- 支持基础资源校验和动作预览。
 
 开发清单见：
 

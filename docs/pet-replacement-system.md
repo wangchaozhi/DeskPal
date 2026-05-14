@@ -42,16 +42,15 @@ struct PetProfile {
 
 ```text
 assets/pets/
-├─ cat_2d/
+├─ sample_svg_2d/
 │  ├─ pet.json
-│  ├─ idle/
-│  ├─ happy/
-│  ├─ sleepy/
-│  └─ dragging/
-└─ robot_3d/
+│  ├─ idle.svg
+│  ├─ happy.svg
+│  ├─ sleepy.svg
+│  └─ dragging.svg
+└─ sample_quick3d/
    ├─ pet.json
-   ├─ robot.glb
-   └─ animations/
+   └─ SampleQuick3DPet.qml
 ```
 
 当前程序会尝试扫描以下位置：
@@ -120,6 +119,7 @@ QML 组件：
 - `qml` 和 `quick3d` 支持加载外部 QML 组件，组件可选暴露 `pressed` 和 `action` 属性。
 - `png-sequence` 会读取动作目录中的图片帧并循环播放。
 - `glb/gltf` 已有基础模型入口，骨骼动画片段会在后续阶段接入。
+- 已提供 `sample_svg_2d` 和 `sample_quick3d` 示例宠物包。
 
 ## 后续开发顺序
 

@@ -1,0 +1,13 @@
+{
+  "id": "sample_svg_2d",
+  "name": "Sample SVG 2D",
+  "type": "2d",
+  "renderer": "svg",
+  "source": "idle.svg",
+  "actions": {
+    "idle": "idle.svg",
+    "happy": "happy.svg",
+    "sleepy": "sleepy.svg",
+    "dragging": "dragging.svg"
+  }
+}

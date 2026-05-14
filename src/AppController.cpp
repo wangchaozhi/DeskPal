@@ -12,6 +12,96 @@
 #include <QGuiApplication>
 #include <QUrl>
 #include <QScreen>
+#include <QVariantMap>
+
+namespace {
+QString petResourcePath(const PetProfile &pet, const QString &relativePath)
+{
+    if (relativePath.isEmpty() || pet.basePath.isEmpty()) {
+        return {};
+    }
+
+    return QDir(pet.basePath).filePath(relativePath);
+}
+
+bool hasImageFrames(const QString &directoryPath)
+{
+    const QDir directory(directoryPath);
+    if (!directory.exists()) {
+        return false;
+    }
+
+    const QStringList filters = {
+        QStringLiteral("*.png"),
+        QStringLiteral("*.apng"),
+        QStringLiteral("*.jpg"),
+        QStringLiteral("*.jpeg"),
+        QStringLiteral("*.webp"),
+    };
+
+    return !directory.entryInfoList(filters, QDir::Files, QDir::Name).isEmpty();
+}
+
+QStringList validatePet(const PetProfile &pet)
+{
+    QStringList issues;
+    if (pet.id.isEmpty()) {
+        issues.append(QObject::tr("Missing pet ID"));
+    }
+    if (pet.name.isEmpty()) {
+        issues.append(QObject::tr("Missing pet name"));
+    }
+    if (pet.type != QStringLiteral("2d") && pet.type != QStringLiteral("3d")) {
+        issues.append(QObject::tr("Invalid pet type"));
+    }
+    if (pet.renderer.isEmpty()) {
+        issues.append(QObject::tr("Missing renderer"));
+    }
+
+    if (pet.basePath.isEmpty()) {
+        return issues;
+    }
+
+    const bool needsSourceFile = pet.renderer != QStringLiteral("png-sequence");
+    if (pet.source.isEmpty()) {
+        issues.append(QObject::tr("Missing source"));
+    } else if (needsSourceFile && !QFileInfo::exists(petResourcePath(pet, pet.source))) {
+        issues.append(QObject::tr("Source not found"));
+    }
+
+    if (pet.renderer == QStringLiteral("png-sequence")) {
+        const QString sourcePath = petResourcePath(pet, pet.source);
+        if (!pet.source.isEmpty() && !hasImageFrames(sourcePath)) {
+            issues.append(QObject::tr("No frames in source directory"));
+        }
+    }
+
+    const QStringList expectedActions = {
+        QStringLiteral("idle"),
+        QStringLiteral("happy"),
+        QStringLiteral("sleepy"),
+        QStringLiteral("dragging"),
+    };
+    for (const QString &action : expectedActions) {
+        const QString actionSource = pet.actions.value(action);
+        if (actionSource.isEmpty()) {
+            issues.append(QObject::tr("Missing action: %1").arg(action));
+            continue;
+        }
+
+        const QString actionPath = petResourcePath(pet, actionSource);
+        if (pet.renderer == QStringLiteral("png-sequence")) {
+            if (!hasImageFrames(actionPath)) {
+                issues.append(QObject::tr("No frames for action: %1").arg(action));
+            }
+        } else if (!QFileInfo::exists(actionPath)) {
+            issues.append(QObject::tr("Action resource not found: %1").arg(action));
+        }
+    }
+
+    return issues;
+}
+} // namespace
 
 AppController::AppController(QObject *parent)
     : QObject(parent)
@@ -300,6 +390,7 @@ QVariantList AppController::petProfiles() const
 {
     QVariantList profiles;
     for (const PetProfile &pet : m_petCatalog->pets()) {
+        const QStringList issues = validatePet(pet);
         QVariantMap profile;
         profile.insert(QStringLiteral("id"), pet.id);
         profile.insert(QStringLiteral("name"), pet.name);
@@ -316,10 +407,23 @@ QVariantList AppController::petProfiles() const
         }
         profile.insert(QStringLiteral("actions"), actions);
         profile.insert(QStringLiteral("actionText"), actionNames.join(QStringLiteral(", ")));
+        profile.insert(QStringLiteral("isValid"), issues.isEmpty());
+        profile.insert(QStringLiteral("issueText"), issues.isEmpty() ? tr("Ready") : issues.join(QStringLiteral("\n")));
         profiles.append(profile);
     }
 
     return profiles;
+}
+
+QVariantList AppController::reloadPetProfiles()
+{
+    m_petCatalog->reload();
+    if (!m_petCatalog->contains(m_currentPetId)) {
+        setCurrentPetId(m_petCatalog->defaultPetId());
+    }
+    m_tray->setPets(m_petCatalog->pets());
+    m_tray->setCurrentPet(m_currentPetId);
+    return petProfiles();
 }
 
 void AppController::quit()

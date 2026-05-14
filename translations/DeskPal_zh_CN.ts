@@ -58,6 +58,81 @@
         <source>Current pet</source>
         <translation>当前宠物</translation>
     </message>
+    <message>
+        <source>Ready</source>
+        <translation>就绪</translation>
+    </message>
+    <message>
+        <source>Needs attention</source>
+        <translation>需要处理</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <source>Idle</source>
+        <translation>待机</translation>
+    </message>
+    <message>
+        <source>Happy</source>
+        <translation>开心</translation>
+    </message>
+    <message>
+        <source>Sleepy</source>
+        <translation>困倦</translation>
+    </message>
+    <message>
+        <source>Dragging</source>
+        <translation>拖拽</translation>
+    </message>
+</context>
+<context>
+    <name>QObject</name>
+    <message>
+        <source>Missing pet ID</source>
+        <translation>缺少宠物 ID</translation>
+    </message>
+    <message>
+        <source>Missing pet name</source>
+        <translation>缺少宠物名称</translation>
+    </message>
+    <message>
+        <source>Invalid pet type</source>
+        <translation>宠物类型无效</translation>
+    </message>
+    <message>
+        <source>Missing renderer</source>
+        <translation>缺少渲染器</translation>
+    </message>
+    <message>
+        <source>Missing source</source>
+        <translation>缺少资源入口</translation>
+    </message>
+    <message>
+        <source>Source not found</source>
+        <translation>找不到资源入口</translation>
+    </message>
+    <message>
+        <source>No frames in source directory</source>
+        <translation>资源目录中没有帧图片</translation>
+    </message>
+    <message>
+        <source>Missing action: %1</source>
+        <translation>缺少动作：%1</translation>
+    </message>
+    <message>
+        <source>No frames for action: %1</source>
+        <translation>动作没有帧图片：%1</translation>
+    </message>
+    <message>
+        <source>Action resource not found: %1</source>
+        <translation>找不到动作资源：%1</translation>
+    </message>
+    <message>
+        <source>Ready</source>
+        <translation>就绪</translation>
+    </message>
 </context>
 <context>
     <name>TrayController</name>

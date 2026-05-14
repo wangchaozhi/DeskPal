@@ -23,6 +23,7 @@ class PetCatalog : public QObject
 public:
     explicit PetCatalog(QObject *parent = nullptr);
 
+    void reload();
     QVector<PetProfile> pets() const;
     PetProfile petById(const QString &id) const;
     QString defaultPetId() const;
