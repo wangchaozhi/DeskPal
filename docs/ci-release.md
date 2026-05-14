@@ -56,10 +56,18 @@ DeskPal-linux-x64.AppImage
 Windows、macOS 和 Linux 分别使用以下部署方式：
 
 - Windows：`windows-2022` runner + `Visual Studio 17 2022` + `windeployqt`
-- macOS x64：`macos-15-intel` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=x86_64` + `macdeployqt -dmg`
-- macOS arm64：`macos-15` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=arm64` + `macdeployqt -dmg`
-- macOS 26 x64：`macos-26-intel` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=x86_64` + `macdeployqt -dmg`
-- macOS 26 arm64：`macos-26` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=arm64` + `macdeployqt -dmg`
+- macOS x64：`macos-15-intel` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=x86_64` + `macdeployqt` + ad-hoc `codesign` + `hdiutil`
+- macOS arm64：`macos-15` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=arm64` + `macdeployqt` + ad-hoc `codesign` + `hdiutil`
+- macOS 26 x64：`macos-26-intel` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=x86_64` + `macdeployqt` + ad-hoc `codesign` + `hdiutil`
+- macOS 26 arm64：`macos-26` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=arm64` + `macdeployqt` + ad-hoc `codesign` + `hdiutil`
+
+macOS 当前使用 ad-hoc 签名：
+
+```bash
+codesign --force --deep --sign - DeskPal.app
+```
+
+这不是 Apple Developer ID 签名，也没有 notarization，但比完全未签名更稳定。正式公开分发时建议升级为 Developer ID 签名和 Apple notarization。
 - Linux：`linuxdeploy` + `linuxdeploy-plugin-qt` 生成 AppImage
 
 Linux 使用 `ubuntu-22.04` 构建 AppImage，以获得比更新系统镜像更好的运行兼容性。

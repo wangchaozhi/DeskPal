@@ -171,14 +171,21 @@ jobs:
             exit 1
           fi
 
-          macdeployqt "${app_path}" -qmldir="${PWD}/qml" -dmg
-          dmg_path="$(find build -maxdepth 5 -name "${APP_NAME}.dmg" -print -quit)"
-          if [ -z "${dmg_path}" ]; then
-            echo "${APP_NAME}.dmg was not found." >&2
-            exit 1
-          fi
+          macdeployqt "${app_path}" -qmldir="${PWD}/qml"
+          codesign --force --deep --sign - "${app_path}"
 
-          cp "${dmg_path}" "package/${{ matrix.asset_name }}.dmg"
+          dmg_root="package/${{ matrix.asset_name }}"
+          mkdir -p "${dmg_root}"
+          cp -R "${app_path}" "${dmg_root}/"
+          cp README.md "${dmg_root}/"
+          cp -R docs "${dmg_root}/"
+
+          hdiutil create \
+            -volname "DeskPal" \
+            -srcfolder "${dmg_root}" \
+            -ov \
+            -format UDZO \
+            "package/${{ matrix.asset_name }}.dmg"
 
       - name: Package Linux
         if: runner.os == 'Linux'
