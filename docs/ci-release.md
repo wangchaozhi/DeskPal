@@ -52,8 +52,8 @@ DeskPal-linux-x64.AppImage
 Windows、macOS 和 Linux 分别使用以下部署方式：
 
 - Windows：`windows-2022` runner + `Visual Studio 17 2022` + `windeployqt`
-- macOS x64：`macos-15-intel` runner + Qt `clang_64` + `macdeployqt -dmg`
-- macOS arm64：`macos-15` runner + Qt `clang_arm64` + `macdeployqt -dmg`
+- macOS x64：`macos-15-intel` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=x86_64` + `macdeployqt -dmg`
+- macOS arm64：`macos-15` runner + Qt `clang_64` + `CMAKE_OSX_ARCHITECTURES=arm64` + `macdeployqt -dmg`
 - Linux：`linuxdeploy` + `linuxdeploy-plugin-qt` 生成 AppImage
 
 Linux 使用 `ubuntu-22.04` 构建 AppImage，以获得比更新系统镜像更好的运行兼容性。
@@ -75,6 +75,8 @@ qt-v2-${{ runner.os }}-${{ env.QT_VERSION }}-${{ matrix.qt_arch }}-${{ matrix.qt
 当缓存命中时，CI 会跳过 `aqtinstall` 的 Qt 下载步骤，只重新配置环境变量。
 
 注意：`aqtinstall` 的下载架构名和实际安装目录名不一定相同。例如 Windows 下载参数是 `win64_msvc2022_64`，实际目录通常是 `msvc2022_64`；Linux 下载参数是 `linux_gcc_64`，实际目录通常是 `gcc_64`。
+
+CI 固定使用 Python 3.12 安装和运行 `aqtinstall`，避免 GitHub runner 上最新 Python 版本带来的兼容性波动。
 
 ## Qt 版本
 

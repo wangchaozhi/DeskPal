@@ -38,11 +38,13 @@ jobs:
             aqt_host: mac
             qt_arch: clang_64
             qt_dir: clang_64
+            cmake_extra_args: -DCMAKE_OSX_ARCHITECTURES=x86_64
             asset_name: DeskPal-macos-x64
           - os: macos-15
             aqt_host: mac
-            qt_arch: clang_arm64
-            qt_dir: clang_arm64
+            qt_arch: clang_64
+            qt_dir: clang_64
+            cmake_extra_args: -DCMAKE_OSX_ARCHITECTURES=arm64
             asset_name: DeskPal-macos-arm64
           - os: ubuntu-22.04
             aqt_host: linux
@@ -82,7 +84,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
       - name: Cache Qt
         id: cache-qt
@@ -121,7 +123,7 @@ jobs:
       - name: Configure Unix
         if: runner.os != 'Windows'
         shell: bash
-        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" ${{ matrix.cmake_extra_args || '' }}
 
       - name: Build
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
