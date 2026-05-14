@@ -8,7 +8,8 @@ CI 支持手动输入发布 tag，并自动完成以下工作：
 
 - 构建 Windows x64 版本。
 - 构建 macOS x64 版本。
-- 构建 Linux x64 版本。
+- 构建 Linux x64 AppImage。
+- 缓存 Qt 安装目录，减少重复下载时间。
 - 上传构建产物为 GitHub Actions artifacts。
 - 自动创建 tag。
 - 自动创建或更新 GitHub Release。
@@ -40,15 +41,34 @@ Actions -> Build and Release -> Run workflow
 ```text
 DeskPal-windows-x64.zip
 DeskPal-macos-x64.zip
-DeskPal-linux-x64.tar.gz
+DeskPal-linux-x64.AppImage
 ```
 
-Windows 和 macOS 会运行 Qt 官方部署工具：
+Windows、macOS 和 Linux 分别使用以下部署方式：
 
 - Windows：`windeployqt`
 - macOS：`macdeployqt`
+- Linux：`linuxdeploy` + `linuxdeploy-plugin-qt` 生成 AppImage
 
-Linux 当前发布二进制和项目文档。Linux 生态的运行时分发方式差异较大，后续可以扩展为 AppImage、deb 或 rpm。
+Linux 使用 `ubuntu-22.04` 构建 AppImage，以获得比更新系统镜像更好的运行兼容性。
+
+## Qt 缓存
+
+工作流使用 `actions/cache` 缓存 Qt 安装目录：
+
+```text
+${{ runner.temp }}/Qt
+```
+
+缓存 key 由平台、Qt 版本和 Qt 架构组成：
+
+```text
+qt-v2-${{ runner.os }}-${{ env.QT_VERSION }}-${{ matrix.qt_arch }}-${{ matrix.qt_dir }}
+```
+
+当缓存命中时，CI 会跳过 `aqtinstall` 的 Qt 下载步骤，只重新配置环境变量。
+
+注意：`aqtinstall` 的下载架构名和实际安装目录名不一定相同。例如 Windows 下载参数是 `win64_msvc2022_64`，实际目录通常是 `msvc2022_64`；Linux 下载参数是 `linux_gcc_64`，实际目录通常是 `gcc_64`。
 
 ## Qt 版本
 
@@ -58,7 +78,13 @@ CI 当前使用：
 Qt 6.10.0
 ```
 
-项目本地可以继续使用更高版本的 Qt，例如 `E:\Qt\6.11.1\msvc2022_64`。CMake 配置要求为 Qt 6.10 或更高。
+项目本地可以继续使用更高版本的 Qt，例如：
+
+```text
+E:\Qt\6.11.1\msvc2022_64
+```
+
+CMake 配置要求为 Qt 6.10 或更高。
 
 ## 推荐发布流程
 
