@@ -303,6 +303,30 @@
         <translation>自动漫步</translation>
     </message>
     <message>
+        <source>Sleepy at night</source>
+        <translation>夜间犯困</translation>
+    </message>
+    <message>
+        <source>Asset imported: %1</source>
+        <translation>资源已导入：%1</translation>
+    </message>
+    <message>
+        <source>Select an asset file</source>
+        <translation>选择资源文件</translation>
+    </message>
+    <message>
+        <source>Select an asset folder</source>
+        <translation>选择资源文件夹</translation>
+    </message>
+    <message>
+        <source>No pet selected</source>
+        <translation>未选择宠物</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>所有文件 (*)</translation>
+    </message>
+    <message>
         <source>New Pet</source>
         <translation>新建宠物</translation>
     </message>
@@ -540,6 +564,14 @@
         <translation>缺少资源入口</translation>
     </message>
     <message>
+        <source>Source not configured</source>
+        <translation>未配置资源入口</translation>
+    </message>
+    <message>
+        <source>Source file not found: %1</source>
+        <translation>资源文件不存在：%1</translation>
+    </message>
+    <message>
         <source>Source not found</source>
         <translation>找不到资源入口</translation>
     </message>
@@ -550,6 +582,14 @@
     <message>
         <source>Missing action: %1</source>
         <translation>缺少动作：%1</translation>
+    </message>
+    <message>
+        <source>Action not configured: %1</source>
+        <translation>未配置动作：%1</translation>
+    </message>
+    <message>
+        <source>Frame rate not set for png-sequence</source>
+        <translation>png-sequence 未设置帧率</translation>
     </message>
     <message>
         <source>No frames for action: %1</source>
@@ -633,6 +673,10 @@
     <message>
         <source>Simplified Chinese</source>
         <translation>简体中文</translation>
+    </message>
+    <message>
+        <source>Japanese</source>
+        <translation>日语</translation>
     </message>
     <message>
         <source>Reset Position</source>

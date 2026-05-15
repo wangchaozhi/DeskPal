@@ -18,6 +18,7 @@ public:
     Q_INVOKABLE void setDragging(bool dragging);
     Q_INVOKABLE void setWalking(bool walking);
     void setIdleActions(const QStringList &actions);
+    void setNightSleepyEnabled(bool enabled);
 
 signals:
     void currentActionChanged();
@@ -34,4 +35,5 @@ private:
     QTimer m_idleTimer;
     bool m_dragging = false;
     bool m_walking = false;
+    bool m_nightSleepyEnabled = true;
 };

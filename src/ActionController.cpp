@@ -1,6 +1,7 @@
 #include "ActionController.h"
 
 #include <QRandomGenerator>
+#include <QTime>
 
 namespace {
 constexpr auto kIdleAction = "idle";
@@ -114,11 +115,28 @@ void ActionController::scheduleIdleAction()
 void ActionController::triggerRandomIdleAction()
 {
     if (!m_dragging && m_currentAction == QLatin1String(kIdleAction) && !m_idleActions.isEmpty()) {
-        const int index = QRandomGenerator::global()->bounded(m_idleActions.size());
-        triggerAction(m_idleActions.at(index), 2200);
+        QString choice;
+        if (m_nightSleepyEnabled
+            && m_idleActions.contains(QString::fromLatin1(kSleepyAction))) {
+            const int hour = QTime::currentTime().hour();
+            const bool isNight = hour >= 22 || hour < 7;
+            if (isNight) {
+                choice = QString::fromLatin1(kSleepyAction);
+            }
+        }
+        if (choice.isEmpty()) {
+            const int index = QRandomGenerator::global()->bounded(m_idleActions.size());
+            choice = m_idleActions.at(index);
+        }
+        triggerAction(choice, 2200);
     }
 
     scheduleIdleAction();
+}
+
+void ActionController::setNightSleepyEnabled(bool enabled)
+{
+    m_nightSleepyEnabled = enabled;
 }
 
 void ActionController::restoreIdle()

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Rectangle {
+AccentCard {
     id: root
 
     property var selectedPet: ({})
@@ -26,6 +26,19 @@ Rectangle {
     })
 
     signal previewRequested(string action, int duration)
+    signal browseAssetRequested(var filters, bool isFolder, var callback)
+
+    function filtersForRenderer(r) {
+        if (r === "quick3d") return [qsTr("QML files (*.qml)")]
+        if (r === "glb") return [qsTr("GLB files (*.glb)")]
+        if (r === "gltf") return [qsTr("GLTF files (*.gltf)")]
+        return [qsTr("All files (*)")]
+    }
+
+    function browseForRenderer(setter) {
+        const r = selectedPet.renderer || ""
+        root.browseAssetRequested(filtersForRenderer(r), false, setter)
+    }
 
     function buildActionModel(source) {
         const result = []
@@ -102,30 +115,15 @@ Rectangle {
     onSelectedPetChanged: resetFields()
     Component.onCompleted: resetFields()
 
-    Layout.fillWidth: true
-    Layout.preferredHeight: form.implicitHeight + 36
-    radius: 10
-    color: "#ffffff"
-    border.color: "#d7dce5"
-    visible: selectedPet.type === "3d"
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 4
-        radius: 10
-        color: "#8b5cf6"
+    onLiveValuesChanged: {
+        if (selectedPet && selectedPet.id && selectedPet.editable === true && selectedPet.type === "3d") {
+            appController.setLiveView3d(selectedPet.id, liveValues)
+        }
     }
 
-    ColumnLayout {
-        id: form
-        anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        anchors.topMargin: 16
-        anchors.bottomMargin: 18
-        spacing: 12
+    Layout.fillWidth: true
+    accentColor: "#8b5cf6"
+    visible: selectedPet.type === "3d"
 
         Label {
             text: qsTr("3D Stage")
@@ -208,9 +206,18 @@ Rectangle {
 
                     DetailLabel { text: modelData.name }
                     TextField {
+                        id: actionField
                         Layout.fillWidth: true
                         text: modelData.value
                         onTextChanged: modelData.value = text
+                    }
+                    Button {
+                        text: "…"
+                        Layout.preferredWidth: 36
+                        enabled: root.selectedPet.editable === true
+                        onClicked: root.browseForRenderer(function(rel) {
+                            actionField.text = rel
+                        })
                     }
                 }
             }
@@ -250,7 +257,6 @@ Rectangle {
                 }
             }
         }
-    }
 
     component DetailLabel: Label {
         Layout.preferredWidth: 110

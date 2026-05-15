@@ -2,12 +2,28 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Rectangle {
+AccentCard {
     id: root
 
     property var selectedPet: ({})
     readonly property var actionNames: ["idle", "happy", "sleepy", "dragging"]
     property var actionEditModel: buildActionModel(selectedPet.actions)
+
+    signal browseAssetRequested(var filters, bool isFolder, var callback)
+
+    function filtersForRenderer(r) {
+        if (r === "qml") return [qsTr("QML files (*.qml)")]
+        if (r === "svg") return [qsTr("SVG files (*.svg)")]
+        if (r === "gif") return [qsTr("GIF files (*.gif)")]
+        if (r === "apng") return [qsTr("PNG/APNG files (*.png *.apng)")]
+        return [qsTr("All files (*)")]
+    }
+
+    function browseForRenderer(setter) {
+        const r = selectedPet.renderer || ""
+        const isFolder = (r === "png-sequence")
+        root.browseAssetRequested(filtersForRenderer(r), isFolder, setter)
+    }
 
     function buildActionModel(source) {
         const result = []
@@ -19,7 +35,9 @@ Rectangle {
     }
 
     function resetFields() {
-        fpsBox.value = selectedPet.fps || 0
+        fpsBox.value = selectedPet.pet2d && selectedPet.pet2d.fps !== undefined
+                ? selectedPet.pet2d.fps
+                : 0
         actionEditModel = buildActionModel(selectedPet.actions)
     }
 
@@ -29,7 +47,7 @@ Rectangle {
             actions[actionEditModel[i].name] = actionEditModel[i].value
         }
         return {
-            "fps": fpsBox.value,
+            "pet2d": { "fps": fpsBox.value },
             "actions": actions
         }
     }
@@ -38,29 +56,8 @@ Rectangle {
     Component.onCompleted: resetFields()
 
     Layout.fillWidth: true
-    Layout.preferredHeight: form.implicitHeight + 36
-    radius: 10
-    color: "#ffffff"
-    border.color: "#d7dce5"
+    accentColor: "#10b981"
     visible: selectedPet.type !== "3d"
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 4
-        radius: 10
-        color: "#10b981"
-    }
-
-    ColumnLayout {
-        id: form
-        anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        anchors.topMargin: 16
-        anchors.bottomMargin: 18
-        spacing: 12
 
         Label {
             text: qsTr("2D Settings")
@@ -107,14 +104,22 @@ Rectangle {
 
                     DetailLabel { text: modelData.name }
                     TextField {
+                        id: actionField
                         Layout.fillWidth: true
                         text: modelData.value
                         onTextChanged: modelData.value = text
                     }
+                    Button {
+                        text: "…"
+                        Layout.preferredWidth: 36
+                        enabled: root.selectedPet.editable === true
+                        onClicked: root.browseForRenderer(function(rel) {
+                            actionField.text = rel
+                        })
+                    }
                 }
             }
         }
-    }
 
     component DetailLabel: Label {
         Layout.preferredWidth: 84

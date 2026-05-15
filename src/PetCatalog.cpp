@@ -36,6 +36,43 @@ bool copyDirectory(const QString &sourcePath, const QString &targetPath)
 
     return true;
 }
+
+bool copyResourceTreeTo(const QString &resourcePrefix, const QString &targetPath, QString *error)
+{
+    const QDir resourceDir(resourcePrefix);
+    if (!resourceDir.exists()) {
+        if (error) {
+            *error = QObject::tr("Sample pet resources missing");
+        }
+        return false;
+    }
+
+    if (!QDir().mkpath(targetPath)) {
+        if (error) {
+            *error = QObject::tr("Cannot create sample folder");
+        }
+        return false;
+    }
+
+    const QFileInfoList entries = resourceDir.entryInfoList(QDir::Files);
+    for (const QFileInfo &entry : entries) {
+        const QString destPath = QDir(targetPath).filePath(entry.fileName());
+        QFile::remove(destPath);
+        if (!QFile::copy(entry.absoluteFilePath(), destPath)) {
+            if (error) {
+                *error = QObject::tr("Failed to copy sample file %1").arg(entry.fileName());
+            }
+            return false;
+        }
+
+        // Resource-extracted files inherit read-only permissions.
+        QFile destFile(destPath);
+        destFile.setPermissions(destFile.permissions()
+                                | QFileDevice::WriteOwner | QFileDevice::WriteUser);
+    }
+
+    return true;
+}
 } // namespace
 
 PetCatalog::PetCatalog(QObject *parent)
@@ -120,11 +157,14 @@ bool PetCatalog::saveProfile(const PetProfile &pet, QString *error) const
     if (pet.height > 0) {
         object.insert(QStringLiteral("height"), pet.height);
     }
-    if (pet.fps > 0) {
-        object.insert(QStringLiteral("fps"), pet.fps);
-    }
     if (pet.scale > 0.0 && pet.scale != 1.0) {
         object.insert(QStringLiteral("scale"), pet.scale);
+    }
+
+    if (pet.type == QStringLiteral("2d") && pet.pet2d.fps > 0) {
+        QJsonObject pet2d;
+        pet2d.insert(QStringLiteral("fps"), pet.pet2d.fps);
+        object.insert(QStringLiteral("pet2d"), pet2d);
     }
 
     QJsonObject actions;
@@ -265,27 +305,25 @@ bool PetCatalog::createPet(const QString &id, const QString &name, const QString
         return false;
     }
 
-    if (!QDir().mkpath(petDir)) {
+    const QString templateId = type == QStringLiteral("3d")
+            ? QStringLiteral("sample_quick3d")
+            : QStringLiteral("sample_svg_2d");
+    const QString resourcePrefix = QStringLiteral(":/samples/%1").arg(templateId);
+
+    QString copyError;
+    if (!copyResourceTreeTo(resourcePrefix, petDir, &copyError)) {
         if (error) {
-            *error = tr("Cannot create pet folder");
+            *error = copyError;
         }
+        QDir(petDir).removeRecursively();
         return false;
     }
 
-    PetProfile pet;
+    PetProfile pet = readProfile(QDir(petDir).filePath(QStringLiteral("pet.json")));
     pet.id = id;
     pet.name = name;
-    pet.type = type == QStringLiteral("3d") ? QStringLiteral("3d") : QStringLiteral("2d");
-    pet.renderer = pet.type == QStringLiteral("3d") ? QStringLiteral("quick3d") : QStringLiteral("qml");
     pet.basePath = petDir;
-    pet.actions = {
-        {QStringLiteral("idle"), QString()},
-        {QStringLiteral("happy"), QString()},
-        {QStringLiteral("sleepy"), QString()},
-        {QStringLiteral("dragging"), QString()},
-    };
-    pet.width = pet.type == QStringLiteral("3d") ? 240 : 220;
-    pet.height = pet.type == QStringLiteral("3d") ? 260 : 250;
+    pet.type = type == QStringLiteral("3d") ? QStringLiteral("3d") : QStringLiteral("2d");
 
     if (!saveProfile(pet, error)) {
         QDir(petDir).removeRecursively();
@@ -294,6 +332,69 @@ bool PetCatalog::createPet(const QString &id, const QString &name, const QString
 
     reload();
     return true;
+}
+
+QString PetCatalog::copyAssetIntoPet(const QString &petId, const QString &sourcePath, QString *error)
+{
+    const PetProfile pet = petById(petId);
+    if (pet.id != petId || pet.basePath.isEmpty()) {
+        if (error) {
+            *error = tr("Built-in pets cannot be edited");
+        }
+        return QString();
+    }
+
+    const QFileInfo info(sourcePath);
+    if (!info.exists()) {
+        if (error) {
+            *error = tr("Source path does not exist");
+        }
+        return QString();
+    }
+
+    const QDir baseDir(pet.basePath);
+
+    if (info.isDir()) {
+        QString targetName = info.fileName();
+        QString targetPath = baseDir.filePath(targetName);
+        int suffix = 1;
+        while (QFileInfo::exists(targetPath)) {
+            targetName = info.fileName() + QStringLiteral("_%1").arg(suffix++);
+            targetPath = baseDir.filePath(targetName);
+        }
+        if (!copyDirectory(info.absoluteFilePath(), targetPath)) {
+            if (error) {
+                *error = tr("Failed to copy asset folder");
+            }
+            return QString();
+        }
+        return targetName;
+    }
+
+    QString targetName = info.fileName();
+    QString targetPath = baseDir.filePath(targetName);
+    int suffix = 1;
+    while (QFileInfo::exists(targetPath)) {
+        const QString stem = info.completeBaseName();
+        const QString ext = info.suffix();
+        targetName = ext.isEmpty()
+                ? QStringLiteral("%1_%2").arg(stem).arg(suffix)
+                : QStringLiteral("%1_%2.%3").arg(stem).arg(suffix).arg(ext);
+        targetPath = baseDir.filePath(targetName);
+        ++suffix;
+    }
+
+    if (!QFile::copy(info.absoluteFilePath(), targetPath)) {
+        if (error) {
+            *error = tr("Failed to copy asset file");
+        }
+        return QString();
+    }
+
+    QFile destFile(targetPath);
+    destFile.setPermissions(destFile.permissions()
+                            | QFileDevice::WriteOwner | QFileDevice::WriteUser);
+    return targetName;
 }
 
 QStringList PetCatalog::availableSamplePets() const
@@ -327,29 +428,13 @@ bool PetCatalog::installSamplePet(const QString &sampleId, QString *error)
         targetPath = QDir(writablePetsRoot()).filePath(targetName);
     }
 
-    if (!QDir().mkpath(targetPath)) {
+    QString copyError;
+    if (!copyResourceTreeTo(resourcePrefix, targetPath, &copyError)) {
         if (error) {
-            *error = tr("Cannot create sample folder");
+            *error = copyError;
         }
+        QDir(targetPath).removeRecursively();
         return false;
-    }
-
-    const QFileInfoList entries = resourceDir.entryInfoList(QDir::Files);
-    for (const QFileInfo &entry : entries) {
-        const QString destPath = QDir(targetPath).filePath(entry.fileName());
-        QFile::remove(destPath);
-        if (!QFile::copy(entry.absoluteFilePath(), destPath)) {
-            if (error) {
-                *error = tr("Failed to copy sample file %1").arg(entry.fileName());
-            }
-            QDir(targetPath).removeRecursively();
-            return false;
-        }
-
-        // Resource-extracted files inherit read-only permissions on some platforms.
-        QFile destFile(destPath);
-        destFile.setPermissions(destFile.permissions()
-                                | QFileDevice::WriteOwner | QFileDevice::WriteUser);
     }
 
     const QString jsonPath = QDir(targetPath).filePath(QStringLiteral("pet.json"));
@@ -489,8 +574,14 @@ PetProfile PetCatalog::readProfile(const QString &profilePath) const
     profile.basePath = QFileInfo(profilePath).absolutePath();
     profile.width = object.value(QStringLiteral("width")).toInt(0);
     profile.height = object.value(QStringLiteral("height")).toInt(0);
-    profile.fps = object.value(QStringLiteral("fps")).toInt(0);
     profile.scale = object.value(QStringLiteral("scale")).toDouble(1.0);
+
+    const QJsonObject pet2dBlock = object.value(QStringLiteral("pet2d")).toObject();
+    if (pet2dBlock.contains(QStringLiteral("fps"))) {
+        profile.pet2d.fps = pet2dBlock.value(QStringLiteral("fps")).toInt(0);
+    } else {
+        profile.pet2d.fps = object.value(QStringLiteral("fps")).toInt(0);
+    }
     if (profile.scale <= 0.0) {
         profile.scale = 1.0;
     }

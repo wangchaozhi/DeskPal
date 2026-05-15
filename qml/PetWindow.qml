@@ -175,6 +175,7 @@ Window {
             petId: appController.currentPetId
             renderer: appController.currentPetRenderer
             source: appController.currentPetSource
+            fps: appController.currentPetFps
         }
     }
 

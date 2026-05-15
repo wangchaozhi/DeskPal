@@ -2,11 +2,29 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Rectangle {
+AccentCard {
     id: root
 
     property var selectedPet: ({})
     property var rendererOptions: []
+
+    signal browseAssetRequested(var filters, bool isFolder, var callback)
+
+    function filtersForRenderer(r) {
+        if (r === "qml" || r === "quick3d") return [qsTr("QML files (*.qml)")]
+        if (r === "svg") return [qsTr("SVG files (*.svg)")]
+        if (r === "gif") return [qsTr("GIF files (*.gif)")]
+        if (r === "apng") return [qsTr("PNG/APNG files (*.png *.apng)")]
+        if (r === "glb") return [qsTr("GLB files (*.glb)")]
+        if (r === "gltf") return [qsTr("GLTF files (*.gltf)")]
+        return [qsTr("All files (*)")]
+    }
+
+    function browseForRenderer(setter) {
+        const r = (selectedPet.renderer || rendererBox.currentText) || ""
+        const isFolder = (r === "png-sequence")
+        root.browseAssetRequested(filtersForRenderer(r), isFolder, setter)
+    }
 
     function resetFields() {
         nameField.text = selectedPet.name || ""
@@ -34,28 +52,7 @@ Rectangle {
     Component.onCompleted: resetFields()
 
     Layout.fillWidth: true
-    Layout.preferredHeight: form.implicitHeight + 36
-    radius: 10
-    color: "#ffffff"
-    border.color: "#d7dce5"
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 4
-        radius: 10
-        color: "#3b82f6"
-    }
-
-    ColumnLayout {
-        id: form
-        anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        anchors.topMargin: 16
-        anchors.bottomMargin: 18
-        spacing: 12
+    accentColor: "#3b82f6"
 
         RowLayout {
             Layout.fillWidth: true
@@ -99,9 +96,22 @@ Rectangle {
             }
 
             DetailLabel { text: qsTr("Source") }
-            TextField {
-                id: sourceField
+            RowLayout {
                 Layout.fillWidth: true
+                spacing: 6
+
+                TextField {
+                    id: sourceField
+                    Layout.fillWidth: true
+                }
+                Button {
+                    text: "…"
+                    Layout.preferredWidth: 36
+                    enabled: root.selectedPet.editable === true
+                    onClicked: root.browseForRenderer(function(rel) {
+                        sourceField.text = rel
+                    })
+                }
             }
 
             DetailLabel { text: qsTr("Width") }
@@ -128,7 +138,6 @@ Rectangle {
                 to: 400
             }
         }
-    }
 
     component DetailLabel: Label {
         Layout.preferredWidth: 84

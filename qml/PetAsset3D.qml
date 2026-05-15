@@ -15,6 +15,9 @@ Item {
         // Touch currentPetId so the binding refreshes when the active pet
         // profile is saved (savePetProfile emits currentPetChanged).
         appController.currentPetId
+        // Touch live override so editing in the settings window refreshes
+        // the live desktop pet too.
+        appController.currentLiveView3d
         return appController.petView3d(petId)
     }
 
@@ -58,6 +61,7 @@ Item {
         View3D {
             id: assetView
             anchors.fill: parent
+            property var animationEntries: []
 
             environment: SceneEnvironment {
                 backgroundMode: SceneEnvironment.Transparent
@@ -103,7 +107,10 @@ Item {
                         id: assetLoader
                         source: appController.resolvePetResourceForPet(root.petId, root.source)
 
-                        onStatusChanged: assetView.applyClip()
+                        onStatusChanged: {
+                            assetView.rebuildAnimationCache()
+                            assetView.applyClip()
+                        }
                     }
                 }
             }
@@ -118,21 +125,42 @@ Item {
                     return
                 }
                 const target = root.animationClip
+                for (let i = 0; i < animationEntries.length; ++i) {
+                    const entry = animationEntries[i]
+                    const matches = target.length > 0
+                                    && (entry.timelineName === target || entry.animationName === target)
+                    if ("enabled" in entry.timeline) {
+                        entry.timeline.enabled = target.length === 0 || matches
+                    }
+                    if ("running" in entry.animation) {
+                        entry.animation.running = matches
+                    }
+                    if ("loops" in entry.animation) {
+                        entry.animation.loops = Animation.Infinite
+                    }
+                }
+            }
+
+            function rebuildAnimationCache() {
+                if (assetLoader.status !== RuntimeLoader.Success) {
+                    animationEntries = []
+                    return
+                }
+                const entries = []
                 visitAnimations(assetLoader, function(timeline, anim) {
                     const timelineName = timeline.objectName || ""
-                    const animName = anim.objectName || ""
-                    const matches = target.length > 0
-                                    && (timelineName === target || animName === target)
-                    if ("enabled" in timeline) {
-                        timeline.enabled = target.length === 0 || matches
-                    }
-                    if ("running" in anim) {
-                        anim.running = matches
-                    }
+                    const animationName = anim.objectName || ""
+                    entries.push({
+                        "timeline": timeline,
+                        "animation": anim,
+                        "timelineName": timelineName,
+                        "animationName": animationName
+                    })
                     if ("loops" in anim) {
                         anim.loops = Animation.Infinite
                     }
                 })
+                animationEntries = entries
             }
 
             function visitAnimations(node, fn) {
@@ -140,7 +168,7 @@ Item {
                     return
                 }
                 if (node.animations !== undefined && node.animations.length !== undefined) {
-                    for (var i = 0; i < node.animations.length; ++i) {
+                    for (let i = 0; i < node.animations.length; ++i) {
                         try {
                             fn(node, node.animations[i])
                         } catch (e) {
@@ -150,7 +178,7 @@ Item {
                     }
                 }
                 if (node.children !== undefined && node.children.length !== undefined) {
-                    for (var c = 0; c < node.children.length; ++c) {
+                    for (let c = 0; c < node.children.length; ++c) {
                         visitAnimations(node.children[c], fn)
                     }
                 }

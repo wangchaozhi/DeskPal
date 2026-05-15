@@ -55,6 +55,7 @@ private:
     QAction *m_systemLanguageAction = nullptr;
     QAction *m_englishLanguageAction = nullptr;
     QAction *m_chineseLanguageAction = nullptr;
+    QAction *m_japaneseLanguageAction = nullptr;
     QVector<QAction *> m_petActions;
     QString m_currentPetId = QStringLiteral("classic_2d");
     bool m_petVisible = true;

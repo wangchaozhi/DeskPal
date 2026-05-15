@@ -33,4 +33,7 @@ public:
 
     bool wanderEnabled() const;
     void setWanderEnabled(bool enabled);
+
+    bool nightSleepyEnabled() const;
+    void setNightSleepyEnabled(bool enabled);
 };

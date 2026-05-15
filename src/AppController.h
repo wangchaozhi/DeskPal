@@ -32,7 +32,9 @@ class AppController : public QObject
     Q_PROPERTY(qreal petOpacity READ petOpacity WRITE setPetOpacity NOTIFY petOpacityChanged)
     Q_PROPERTY(bool autoStart READ autoStart WRITE setAutoStart NOTIFY autoStartChanged)
     Q_PROPERTY(bool wanderEnabled READ wanderEnabled WRITE setWanderEnabled NOTIFY wanderEnabledChanged)
+    Q_PROPERTY(bool nightSleepyEnabled READ nightSleepyEnabled WRITE setNightSleepyEnabled NOTIFY nightSleepyEnabledChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
+    Q_PROPERTY(QVariantMap currentLiveView3d READ currentLiveView3d NOTIFY liveView3dChanged)
 
 public:
     explicit AppController(QObject *parent = nullptr);
@@ -60,7 +62,12 @@ public:
     void setAutoStart(bool enabled);
     bool wanderEnabled() const;
     void setWanderEnabled(bool enabled);
+    bool nightSleepyEnabled() const;
+    void setNightSleepyEnabled(bool enabled);
     QString lastError() const;
+    QVariantMap currentLiveView3d() const;
+    Q_INVOKABLE void setLiveView3d(const QString &petId, const QVariantMap &view);
+    Q_INVOKABLE void clearLiveView3d();
 
     Q_INVOKABLE QPoint windowPosition() const;
     Q_INVOKABLE QRect availableGeometry(int x, int y) const;
@@ -92,6 +99,7 @@ public:
     Q_INVOKABLE bool deletePet(const QString &petId);
     Q_INVOKABLE QStringList availableSamplePets() const;
     Q_INVOKABLE bool installSamplePet(const QString &sampleId);
+    Q_INVOKABLE QString importPetAsset(const QString &petId, const QString &fileUrl);
     Q_INVOKABLE void quit();
 
 signals:
@@ -102,7 +110,9 @@ signals:
     void petOpacityChanged();
     void autoStartChanged();
     void wanderEnabledChanged();
+    void nightSleepyEnabledChanged();
     void lastErrorChanged();
+    void liveView3dChanged();
     void showRequested();
     void hideRequested();
     void settingsRequested();
@@ -115,6 +125,8 @@ private:
     bool m_alwaysOnTop = true;
     QString m_currentPetId = QStringLiteral("classic_2d");
     QString m_lastError;
+    QString m_liveView3dPetId;
+    QVariantMap m_liveView3d;
     SettingsStore *m_settings = nullptr;
     ActionController *m_actions = nullptr;
     PetCatalog *m_petCatalog = nullptr;

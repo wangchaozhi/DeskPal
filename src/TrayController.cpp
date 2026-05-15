@@ -37,6 +37,8 @@ void TrayController::setLanguage(const QString &language)
         targetAction = m_englishLanguageAction;
     } else if (language == QStringLiteral("zh_CN")) {
         targetAction = m_chineseLanguageAction;
+    } else if (language == QStringLiteral("ja_JP")) {
+        targetAction = m_japaneseLanguageAction;
     }
 
     if (targetAction) {
@@ -138,6 +140,11 @@ void TrayController::createMenu()
     m_chineseLanguageAction->setData(QStringLiteral("zh_CN"));
     m_languageActionGroup->addAction(m_chineseLanguageAction);
 
+    m_japaneseLanguageAction = m_languageMenu->addAction(QString());
+    m_japaneseLanguageAction->setCheckable(true);
+    m_japaneseLanguageAction->setData(QStringLiteral("ja_JP"));
+    m_languageActionGroup->addAction(m_japaneseLanguageAction);
+
     connect(m_languageActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
         emit languageChanged(action->data().toString());
     });
@@ -174,6 +181,7 @@ void TrayController::retranslate()
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));
     m_chineseLanguageAction->setText(tr("Simplified Chinese"));
+    m_japaneseLanguageAction->setText(tr("Japanese"));
     m_resetAction->setText(tr("Reset Position"));
     m_quitAction->setText(tr("Quit"));
     m_trayIcon->setToolTip(tr("DeskPal"));

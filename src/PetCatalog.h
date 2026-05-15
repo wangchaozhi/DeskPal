@@ -6,6 +6,11 @@
 #include <QStringList>
 #include <QVector>
 
+struct Pet2DSpec
+{
+    int fps = 0;
+};
+
 struct PetView3D
 {
     qreal cameraDistance = 360.0;
@@ -36,8 +41,8 @@ struct PetProfile
     QStringList speeches;
     int width = 0;
     int height = 0;
-    int fps = 0;
     qreal scale = 1.0;
+    Pet2DSpec pet2d;
     PetView3D view3d;
 };
 
@@ -63,6 +68,7 @@ public:
 
     QStringList availableSamplePets() const;
     bool installSamplePet(const QString &sampleId, QString *error = nullptr);
+    QString copyAssetIntoPet(const QString &petId, const QString &sourcePath, QString *error = nullptr);
 
 private:
     void loadBuiltInPets();

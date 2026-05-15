@@ -24,9 +24,10 @@ bool TranslationManager::installLanguage(const QString &language)
     const QString localeName = localeNameForLanguage(m_language);
     bool loaded = true;
 
-    if (localeName.startsWith(QStringLiteral("zh"))) {
+    if (localeName != QStringLiteral("en")) {
         const QString translationsPath = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
-        loaded = m_qtTranslator.load(QStringLiteral("qt_%1").arg(localeName), translationsPath);
+        const QString qtBaseLocale = localeName.section(QLatin1Char('_'), 0, 0);
+        loaded = m_qtTranslator.load(QStringLiteral("qt_%1").arg(qtBaseLocale), translationsPath);
         if (loaded) {
             QCoreApplication::installTranslator(&m_qtTranslator);
         }
@@ -47,10 +48,20 @@ QString TranslationManager::localeNameForLanguage(const QString &language) const
         return QStringLiteral("zh_CN");
     }
 
+    if (language == QStringLiteral("ja_JP")) {
+        return QStringLiteral("ja_JP");
+    }
+
     if (language == QStringLiteral("en")) {
         return QStringLiteral("en");
     }
 
     const QString systemLocale = QLocale::system().name();
-    return systemLocale.startsWith(QStringLiteral("zh")) ? QStringLiteral("zh_CN") : QStringLiteral("en");
+    if (systemLocale.startsWith(QStringLiteral("zh"))) {
+        return QStringLiteral("zh_CN");
+    }
+    if (systemLocale.startsWith(QStringLiteral("ja"))) {
+        return QStringLiteral("ja_JP");
+    }
+    return QStringLiteral("en");
 }

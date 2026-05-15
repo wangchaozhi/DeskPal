@@ -8,6 +8,7 @@ Item {
     property string petId: appController.currentPetId
     property string renderer: "qml"
     property string source: ""
+    property int fps: appController.petFps(petId)
 
     width: 180
     height: 210
@@ -78,6 +79,7 @@ Item {
             anchors.fill: parent
             petId: root.petId
             action: root.action
+            fps: root.fps
         }
     }
 }

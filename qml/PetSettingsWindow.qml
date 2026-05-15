@@ -62,6 +62,14 @@ Window {
         }
     }
 
+    onVisibleChanged: {
+        if (!visible) {
+            appController.clearLiveView3d()
+        }
+    }
+
+    onSelectedPetChanged: appController.clearLiveView3d()
+
     FolderDialog {
         id: importDialog
         title: qsTr("Select a pet pack folder")
@@ -85,6 +93,49 @@ Window {
                 root.statusMessage = appController.lastError
             }
         }
+    }
+
+    property var pendingAssetCallback: null
+
+    FileDialog {
+        id: assetFileDialog
+        title: qsTr("Select an asset file")
+        onAccepted: root.handleAssetSelected(selectedFile)
+    }
+
+    FolderDialog {
+        id: assetFolderDialog
+        title: qsTr("Select an asset folder")
+        onAccepted: root.handleAssetSelected(selectedFolder)
+    }
+
+    function browseAsset(filters, isFolder, callback) {
+        pendingAssetCallback = callback
+        if (isFolder) {
+            assetFolderDialog.open()
+        } else {
+            assetFileDialog.nameFilters = filters && filters.length > 0
+                    ? filters
+                    : [qsTr("All files (*)")]
+            assetFileDialog.open()
+        }
+    }
+
+    function handleAssetSelected(url) {
+        if (!root.selectedPet || !root.selectedPet.id) {
+            statusMessage = qsTr("No pet selected")
+            return
+        }
+        const rel = appController.importPetAsset(root.selectedPet.id, url)
+        if (rel.length > 0) {
+            statusMessage = qsTr("Asset imported: %1").arg(rel)
+            if (pendingAssetCallback) {
+                pendingAssetCallback(rel)
+            }
+        } else {
+            statusMessage = appController.lastError
+        }
+        pendingAssetCallback = null
     }
 
     Dialog {
@@ -256,6 +307,12 @@ Window {
                 onToggled: appController.wanderEnabled = checked
             }
 
+            CheckBox {
+                text: qsTr("Sleepy at night")
+                checked: appController.nightSleepyEnabled
+                onToggled: appController.nightSleepyEnabled = checked
+            }
+
             Label {
                 Layout.fillWidth: true
                 text: root.statusMessage
@@ -338,56 +395,71 @@ Window {
                         id: profileEditor
                         selectedPet: root.selectedPet
                         rendererOptions: root.selectedPet.type === "3d" ? root.rendererOptions3D : root.rendererOptions2D
+                        onBrowseAssetRequested: (filters, isFolder, callback) => root.browseAsset(filters, isFolder, callback)
                     }
 
                     Pet2DEditor {
                         id: pet2DEditor
                         selectedPet: root.selectedPet
+                        onBrowseAssetRequested: (filters, isFolder, callback) => root.browseAsset(filters, isFolder, callback)
                     }
 
                     Pet3DEditor {
                         id: pet3DEditor
                         selectedPet: root.selectedPet
                         onPreviewRequested: (action, duration) => root.setPreview(action, duration)
+                        onBrowseAssetRequested: (filters, isFolder, callback) => root.browseAsset(filters, isFolder, callback)
                     }
 
-                    Rectangle {
+                    AccentCard {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: savePanel.implicitHeight + 36
-                        radius: 10
-                        color: "#ffffff"
-                        border.color: "#d7dce5"
-
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            width: 4
-                            radius: 10
-                            color: "#f59e0b"
-                        }
+                        accentColor: "#f59e0b"
 
                         RowLayout {
                             id: savePanel
-                            anchors.fill: parent
-                            anchors.leftMargin: 20
-                            anchors.rightMargin: 20
-                            anchors.topMargin: 16
-                            anchors.bottomMargin: 18
+                            Layout.fillWidth: true
                             spacing: 14
 
                             Button {
                                 text: qsTr("Save Configuration")
                                 highlighted: true
+                                Layout.alignment: Qt.AlignTop
                                 enabled: root.selectedPet.editable === true
                                 onClicked: root.saveConfiguration()
                             }
 
-                            Label {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: root.selectedPet.issueText || ""
-                                color: root.selectedPet.isValid ? "#2f7d32" : "#b45309"
-                                wrapMode: Text.WordWrap
+                                spacing: 4
+
+                                Label {
+                                    Layout.fillWidth: true
+                                    visible: (root.selectedPet.errors || []).length === 0
+                                            && (root.selectedPet.warnings || []).length === 0
+                                    text: qsTr("Ready")
+                                    color: "#2f7d32"
+                                    font.bold: true
+                                }
+
+                                Repeater {
+                                    model: root.selectedPet.errors || []
+                                    delegate: Label {
+                                        Layout.fillWidth: true
+                                        text: "● " + modelData
+                                        color: "#b91c1c"
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
+
+                                Repeater {
+                                    model: root.selectedPet.warnings || []
+                                    delegate: Label {
+                                        Layout.fillWidth: true
+                                        text: "○ " + modelData
+                                        color: "#b45309"
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
                             }
                         }
                     }

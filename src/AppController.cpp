@@ -119,33 +119,41 @@ bool extensionMatches(const QString &fileName, const QStringList &allowed)
     return allowed.contains(suffix);
 }
 
-QStringList validatePet(const PetProfile &pet)
+struct PetIssue {
+    bool isError;
+    QString message;
+};
+
+QVector<PetIssue> validatePet(const PetProfile &pet)
 {
-    QStringList issues;
+    QVector<PetIssue> issues;
+    auto err = [&](const QString &m) { issues.push_back({true, m}); };
+    auto warn = [&](const QString &m) { issues.push_back({false, m}); };
+
     if (pet.id.isEmpty()) {
-        issues.append(QObject::tr("Missing pet ID"));
+        err(QObject::tr("Missing pet ID"));
     }
     if (pet.name.isEmpty()) {
-        issues.append(QObject::tr("Missing pet name"));
+        err(QObject::tr("Missing pet name"));
     }
     if (pet.type != QStringLiteral("2d") && pet.type != QStringLiteral("3d")) {
-        issues.append(QObject::tr("Invalid pet type"));
+        err(QObject::tr("Invalid pet type"));
     }
     if (pet.renderer.isEmpty()) {
-        issues.append(QObject::tr("Missing renderer"));
+        err(QObject::tr("Missing renderer"));
     }
 
     if (pet.width != 0 && (pet.width < 32 || pet.width > 4000)) {
-        issues.append(QObject::tr("Width must be between 32 and 4000"));
+        err(QObject::tr("Width must be between 32 and 4000"));
     }
     if (pet.height != 0 && (pet.height < 32 || pet.height > 4000)) {
-        issues.append(QObject::tr("Height must be between 32 and 4000"));
+        err(QObject::tr("Height must be between 32 and 4000"));
     }
     if (pet.scale <= 0.0 || pet.scale > 10.0) {
-        issues.append(QObject::tr("Scale must be between 0.1 and 10"));
+        err(QObject::tr("Scale must be between 0.1 and 10"));
     }
-    if (pet.renderer == QStringLiteral("png-sequence") && pet.fps <= 0) {
-        issues.append(QObject::tr("Frame rate must be greater than zero for png-sequence"));
+    if (pet.renderer == QStringLiteral("png-sequence") && pet.pet2d.fps <= 0) {
+        warn(QObject::tr("Frame rate not set for png-sequence"));
     }
 
     if (pet.basePath.isEmpty()) {
@@ -155,20 +163,20 @@ QStringList validatePet(const PetProfile &pet)
     const QStringList expectedExtensions = expectedExtensionsFor(pet.renderer);
     const bool needsSourceFile = pet.renderer != QStringLiteral("png-sequence");
     if (pet.source.isEmpty()) {
-        issues.append(QObject::tr("Missing source"));
+        warn(QObject::tr("Source not configured"));
     } else if (needsSourceFile) {
         if (!QFileInfo::exists(petResourcePath(pet, pet.source))) {
-            issues.append(QObject::tr("Source not found"));
+            err(QObject::tr("Source file not found: %1").arg(pet.source));
         } else if (!extensionMatches(pet.source, expectedExtensions)) {
-            issues.append(QObject::tr("Source extension does not match renderer %1")
-                              .arg(pet.renderer));
+            err(QObject::tr("Source extension does not match renderer %1")
+                    .arg(pet.renderer));
         }
     }
 
     if (pet.renderer == QStringLiteral("png-sequence")) {
         const QString sourcePath = petResourcePath(pet, pet.source);
         if (!pet.source.isEmpty() && !hasImageFrames(sourcePath)) {
-            issues.append(QObject::tr("No frames in source directory"));
+            err(QObject::tr("No frames in source directory"));
         }
     }
 
@@ -181,32 +189,32 @@ QStringList validatePet(const PetProfile &pet)
     for (const QString &action : expectedActions) {
         const QString actionSource = pet.actions.value(action);
         if (actionSource.isEmpty()) {
-            issues.append(QObject::tr("Missing action: %1").arg(action));
+            warn(QObject::tr("Action not configured: %1").arg(action));
             continue;
         }
 
         const QString actionPath = petResourcePath(pet, actionSource);
         if (pet.renderer == QStringLiteral("png-sequence")) {
             if (!hasImageFrames(actionPath)) {
-                issues.append(QObject::tr("No frames for action: %1").arg(action));
+                err(QObject::tr("No frames for action: %1").arg(action));
             }
         } else if (!QFileInfo::exists(actionPath)) {
-            issues.append(QObject::tr("Action resource not found: %1").arg(action));
+            err(QObject::tr("Action resource not found: %1").arg(action));
         } else if (!extensionMatches(actionSource, expectedExtensions)) {
-            issues.append(QObject::tr("Action %1 extension does not match renderer %2")
-                              .arg(action, pet.renderer));
+            err(QObject::tr("Action %1 extension does not match renderer %2")
+                    .arg(action, pet.renderer));
         }
     }
 
     for (auto it = pet.animations.constBegin(); it != pet.animations.constEnd(); ++it) {
         if (!expectedActions.contains(it.key())) {
-            issues.append(QObject::tr("Animation clip references unknown action: %1").arg(it.key()));
+            warn(QObject::tr("Animation clip references unknown action: %1").arg(it.key()));
         }
     }
 
     for (const QString &idleAction : pet.idleActions) {
         if (!expectedActions.contains(idleAction)) {
-            issues.append(QObject::tr("Idle action references unknown action: %1").arg(idleAction));
+            warn(QObject::tr("Idle action references unknown action: %1").arg(idleAction));
         }
     }
 
@@ -223,6 +231,7 @@ AppController::AppController(QObject *parent)
     , m_tray(new TrayController(this))
 {
     m_translations->installLanguage(m_settings->language());
+    m_actions->setNightSleepyEnabled(m_settings->nightSleepyEnabled());
     m_alwaysOnTop = m_settings->alwaysOnTop();
     m_currentPetId = m_petCatalog->contains(m_settings->currentPetId())
             ? m_settings->currentPetId()
@@ -367,7 +376,7 @@ int AppController::currentPetHeight() const
 
 int AppController::currentPetFps() const
 {
-    return m_petCatalog->petById(m_currentPetId).fps;
+    return m_petCatalog->petById(m_currentPetId).pet2d.fps;
 }
 
 qreal AppController::currentPetScale() const
@@ -424,6 +433,22 @@ void AppController::setWanderEnabled(bool enabled)
 
     m_settings->setWanderEnabled(enabled);
     emit wanderEnabledChanged();
+}
+
+bool AppController::nightSleepyEnabled() const
+{
+    return m_settings->nightSleepyEnabled();
+}
+
+void AppController::setNightSleepyEnabled(bool enabled)
+{
+    if (m_settings->nightSleepyEnabled() == enabled) {
+        return;
+    }
+
+    m_settings->setNightSleepyEnabled(enabled);
+    m_actions->setNightSleepyEnabled(enabled);
+    emit nightSleepyEnabledChanged();
 }
 
 QString AppController::lastError() const
@@ -575,7 +600,7 @@ QStringList AppController::petFrameUrls(const QString &petId, const QString &act
 
 int AppController::petFps(const QString &petId) const
 {
-    return m_petCatalog->petById(petId).fps;
+    return m_petCatalog->petById(petId).pet2d.fps;
 }
 
 QString AppController::petAnimationClip(const QString &petId, const QString &action) const
@@ -585,7 +610,37 @@ QString AppController::petAnimationClip(const QString &petId, const QString &act
 
 QVariantMap AppController::petView3d(const QString &petId) const
 {
+    if (petId == m_liveView3dPetId && !m_liveView3d.isEmpty()) {
+        return m_liveView3d;
+    }
     return view3dToMap(m_petCatalog->petById(petId).view3d);
+}
+
+QVariantMap AppController::currentLiveView3d() const
+{
+    QVariantMap map = m_liveView3d;
+    map.insert(QStringLiteral("petId"), m_liveView3dPetId);
+    return map;
+}
+
+void AppController::setLiveView3d(const QString &petId, const QVariantMap &view)
+{
+    if (m_liveView3dPetId == petId && m_liveView3d == view) {
+        return;
+    }
+    m_liveView3dPetId = petId;
+    m_liveView3d = view;
+    emit liveView3dChanged();
+}
+
+void AppController::clearLiveView3d()
+{
+    if (m_liveView3dPetId.isEmpty() && m_liveView3d.isEmpty()) {
+        return;
+    }
+    m_liveView3dPetId.clear();
+    m_liveView3d.clear();
+    emit liveView3dChanged();
 }
 
 QString AppController::randomSpeech() const
@@ -608,7 +663,16 @@ QVariantList AppController::petProfiles() const
 {
     QVariantList profiles;
     for (const PetProfile &pet : m_petCatalog->pets()) {
-        const QStringList issues = validatePet(pet);
+        const QVector<PetIssue> issues = validatePet(pet);
+        QStringList warnings;
+        QStringList errors;
+        for (const PetIssue &issue : issues) {
+            if (issue.isError) {
+                errors.append(issue.message);
+            } else {
+                warnings.append(issue.message);
+            }
+        }
         QVariantMap profile;
         profile.insert(QStringLiteral("id"), pet.id);
         profile.insert(QStringLiteral("name"), pet.name);
@@ -618,7 +682,9 @@ QVariantList AppController::petProfiles() const
         profile.insert(QStringLiteral("basePath"), pet.basePath);
         profile.insert(QStringLiteral("width"), pet.width);
         profile.insert(QStringLiteral("height"), pet.height);
-        profile.insert(QStringLiteral("fps"), pet.fps);
+        QVariantMap pet2dMap;
+        pet2dMap.insert(QStringLiteral("fps"), pet.pet2d.fps);
+        profile.insert(QStringLiteral("pet2d"), pet2dMap);
         profile.insert(QStringLiteral("scale"), pet.scale);
         profile.insert(QStringLiteral("idleActions"), pet.idleActions);
         profile.insert(QStringLiteral("speeches"), pet.speeches);
@@ -640,8 +706,19 @@ QVariantList AppController::petProfiles() const
         profile.insert(QStringLiteral("animations"), animations);
         profile.insert(QStringLiteral("view3d"), view3dToMap(pet.view3d));
 
-        profile.insert(QStringLiteral("isValid"), issues.isEmpty());
-        profile.insert(QStringLiteral("issueText"), issues.isEmpty() ? tr("Ready") : issues.join(QStringLiteral("\n")));
+        profile.insert(QStringLiteral("isValid"), errors.isEmpty());
+        profile.insert(QStringLiteral("warnings"), warnings);
+        profile.insert(QStringLiteral("errors"), errors);
+
+        QStringList combined;
+        for (const QString &error : errors) {
+            combined.append(QStringLiteral("● ") + error);
+        }
+        for (const QString &warning : warnings) {
+            combined.append(QStringLiteral("○ ") + warning);
+        }
+        profile.insert(QStringLiteral("issueText"),
+                       combined.isEmpty() ? tr("Ready") : combined.join(QStringLiteral("\n")));
         profiles.append(profile);
     }
 
@@ -692,8 +769,13 @@ bool AppController::savePetProfile(const QVariantMap &profile)
     if (profile.contains(QStringLiteral("height"))) {
         pet.height = profile.value(QStringLiteral("height")).toInt();
     }
-    if (profile.contains(QStringLiteral("fps"))) {
-        pet.fps = profile.value(QStringLiteral("fps")).toInt();
+    if (profile.contains(QStringLiteral("pet2d"))) {
+        const QVariantMap pet2dMap = profile.value(QStringLiteral("pet2d")).toMap();
+        if (pet2dMap.contains(QStringLiteral("fps"))) {
+            pet.pet2d.fps = pet2dMap.value(QStringLiteral("fps")).toInt();
+        }
+    } else if (profile.contains(QStringLiteral("fps"))) {
+        pet.pet2d.fps = profile.value(QStringLiteral("fps")).toInt();
     }
     if (profile.contains(QStringLiteral("scale"))) {
         const qreal scale = profile.value(QStringLiteral("scale")).toReal();
@@ -826,6 +908,28 @@ bool AppController::createPet(const QString &name, const QString &type)
 QStringList AppController::availableSamplePets() const
 {
     return m_petCatalog->availableSamplePets();
+}
+
+QString AppController::importPetAsset(const QString &petId, const QString &fileUrl)
+{
+    if (!m_petCatalog->contains(petId)) {
+        setLastError(tr("Unknown pet"));
+        return QString();
+    }
+
+    const QString localPath = QUrl(fileUrl).isLocalFile()
+            ? QUrl(fileUrl).toLocalFile()
+            : fileUrl;
+
+    QString error;
+    const QString relPath = m_petCatalog->copyAssetIntoPet(petId, localPath, &error);
+    if (relPath.isEmpty()) {
+        setLastError(error);
+        return QString();
+    }
+
+    setLastError(QString());
+    return relPath;
 }
 
 bool AppController::installSamplePet(const QString &sampleId)

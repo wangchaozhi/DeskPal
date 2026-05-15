@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Rectangle {
+AccentCard {
     id: root
 
     property var selectedPet: ({})
@@ -13,27 +13,8 @@ Rectangle {
     signal useRequested()
 
     Layout.fillWidth: true
-    Layout.preferredHeight: 330
-    radius: 10
-    color: "#ffffff"
-    border.color: "#d7dce5"
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 4
-        radius: 10
-        color: "#0ea5e9"
-    }
-
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        anchors.topMargin: 16
-        anchors.bottomMargin: 16
-        spacing: 12
+    contentPreferredHeight: 330
+    accentColor: "#0ea5e9"
 
         RowLayout {
             Layout.fillWidth: true
@@ -124,7 +105,6 @@ Rectangle {
                 onClicked: root.useRequested()
             }
         }
-    }
 
     Component {
         id: preview2DComponent
@@ -136,6 +116,9 @@ Rectangle {
             petId: root.selectedPet.id || ""
             renderer: root.selectedPet.renderer || "qml"
             source: root.selectedPet.source || ""
+            fps: root.selectedPet.pet2d && root.selectedPet.pet2d.fps !== undefined
+                    ? root.selectedPet.pet2d.fps
+                    : 0
         }
     }
 

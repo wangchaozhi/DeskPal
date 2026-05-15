@@ -30,6 +30,7 @@ qt_add_qml_module(DeskPal
     QML_FILES
         Main.qml
         qml/PetWindow.qml
+        qml/AccentCard.qml
         qml/PetBody.qml
         qml/PetModel3D.qml
         qml/PetAsset2D.qml
@@ -58,6 +59,7 @@ qt_add_resources(DeskPal "sample_pets"
 qt_add_translations(DeskPal
     TS_FILES
         translations/DeskPal_zh_CN.ts
+        translations/DeskPal_ja_JP.ts
     RESOURCE_PREFIX
         /i18n
 )

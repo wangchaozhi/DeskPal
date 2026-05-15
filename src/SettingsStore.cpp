@@ -15,6 +15,7 @@ constexpr auto kLanguage = "ui/language";
 constexpr auto kCurrentPetId = "pet/currentPetId";
 constexpr auto kPetOpacity = "pet/opacity";
 constexpr auto kWanderEnabled = "pet/wander";
+constexpr auto kNightSleepyEnabled = "pet/nightSleepy";
 constexpr auto kDefaultWindowPositionX = 120;
 constexpr auto kDefaultWindowPositionY = 120;
 constexpr auto kDefaultLanguage = "system";
@@ -168,6 +169,18 @@ void SettingsStore::setWanderEnabled(bool enabled)
 {
     QSettings settings;
     settings.setValue(kWanderEnabled, enabled);
+}
+
+bool SettingsStore::nightSleepyEnabled() const
+{
+    QSettings settings;
+    return settings.value(kNightSleepyEnabled, true).toBool();
+}
+
+void SettingsStore::setNightSleepyEnabled(bool enabled)
+{
+    QSettings settings;
+    settings.setValue(kNightSleepyEnabled, enabled);
 }
 
 bool SettingsStore::autoStartEnabled() const

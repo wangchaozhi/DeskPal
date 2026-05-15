@@ -7,7 +7,7 @@ Item {
     property string action: "idle"
     property var frames: appController.petFrameUrls(petId, action)
     property int frameIndex: 0
-    property int fps: appController.petFps(petId)
+    property int fps: 0
 
     onActionChanged: {
         frames = appController.petFrameUrls(petId, action)
@@ -17,7 +17,6 @@ Item {
     onPetIdChanged: {
         frames = appController.petFrameUrls(petId, action)
         frameIndex = 0
-        fps = appController.petFps(petId)
     }
 
     Connections {
@@ -26,7 +25,6 @@ Item {
         function onCurrentPetChanged() {
             root.frames = appController.petFrameUrls(root.petId, root.action)
             root.frameIndex = 0
-            root.fps = appController.petFps(root.petId)
         }
     }
 
