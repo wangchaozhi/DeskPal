@@ -314,14 +314,17 @@ Window {
             }
 
             ScrollView {
+                id: rightScroll
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
                 contentWidth: availableWidth
+                ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
                 ColumnLayout {
-                    width: parent.width
-                    spacing: 12
+                    width: rightScroll.availableWidth - 46
+                    x: 10
+                    spacing: 16
 
                     PetPreviewPanel {
                         selectedPet: root.selectedPet
@@ -350,19 +353,32 @@ Window {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: savePanel.implicitHeight + 28
-                        radius: 8
+                        Layout.preferredHeight: savePanel.implicitHeight + 36
+                        radius: 10
                         color: "#ffffff"
                         border.color: "#d7dce5"
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: 4
+                            radius: 10
+                            color: "#f59e0b"
+                        }
 
                         RowLayout {
                             id: savePanel
                             anchors.fill: parent
-                            anchors.margins: 14
-                            spacing: 10
+                            anchors.leftMargin: 20
+                            anchors.rightMargin: 20
+                            anchors.topMargin: 16
+                            anchors.bottomMargin: 18
+                            spacing: 14
 
                             Button {
                                 text: qsTr("Save Configuration")
+                                highlighted: true
                                 enabled: root.selectedPet.editable === true
                                 onClicked: root.saveConfiguration()
                             }

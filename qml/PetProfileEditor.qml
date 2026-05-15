@@ -34,16 +34,28 @@ Rectangle {
     Component.onCompleted: resetFields()
 
     Layout.fillWidth: true
-    Layout.preferredHeight: form.implicitHeight + 28
-    radius: 8
+    Layout.preferredHeight: form.implicitHeight + 36
+    radius: 10
     color: "#ffffff"
     border.color: "#d7dce5"
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 4
+        radius: 10
+        color: "#3b82f6"
+    }
 
     ColumnLayout {
         id: form
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 10
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        anchors.topMargin: 16
+        anchors.bottomMargin: 18
+        spacing: 12
 
         RowLayout {
             Layout.fillWidth: true
@@ -51,6 +63,7 @@ Rectangle {
             Label {
                 text: qsTr("Profile")
                 font.bold: true
+                font.pixelSize: 14
                 color: "#1f2937"
                 Layout.fillWidth: true
             }

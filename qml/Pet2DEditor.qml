@@ -38,21 +38,34 @@ Rectangle {
     Component.onCompleted: resetFields()
 
     Layout.fillWidth: true
-    Layout.preferredHeight: form.implicitHeight + 28
-    radius: 8
+    Layout.preferredHeight: form.implicitHeight + 36
+    radius: 10
     color: "#ffffff"
     border.color: "#d7dce5"
     visible: selectedPet.type !== "3d"
 
+    Rectangle {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 4
+        radius: 10
+        color: "#10b981"
+    }
+
     ColumnLayout {
         id: form
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 10
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        anchors.topMargin: 16
+        anchors.bottomMargin: 18
+        spacing: 12
 
         Label {
             text: qsTr("2D Settings")
             font.bold: true
+            font.pixelSize: 14
             color: "#1f2937"
         }
 

@@ -14,13 +14,25 @@ Rectangle {
 
     Layout.fillWidth: true
     Layout.preferredHeight: 330
-    radius: 8
+    radius: 10
     color: "#ffffff"
     border.color: "#d7dce5"
 
+    Rectangle {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 4
+        radius: 10
+        color: "#0ea5e9"
+    }
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 14
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        anchors.topMargin: 16
+        anchors.bottomMargin: 16
         spacing: 12
 
         RowLayout {

@@ -11,6 +11,14 @@
 <context>
     <name>PetPreviewPanel</name>
     <message>
+        <source>(unnamed pet)</source>
+        <translation>（未命名宠物）</translation>
+    </message>
+    <message>
+        <source>(not set)</source>
+        <translation>（未设置）</translation>
+    </message>
+    <message>
         <source>Name</source>
         <translation>名称</translation>
     </message>
