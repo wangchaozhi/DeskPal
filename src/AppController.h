@@ -81,6 +81,7 @@ public:
     Q_INVOKABLE QStringList petFrameUrls(const QString &petId, const QString &action) const;
     Q_INVOKABLE int petFps(const QString &petId) const;
     Q_INVOKABLE QString petAnimationClip(const QString &petId, const QString &action) const;
+    Q_INVOKABLE QVariantMap petView3d(const QString &petId) const;
     Q_INVOKABLE QString randomSpeech() const;
     Q_INVOKABLE QVariantList petProfiles() const;
     Q_INVOKABLE QVariantList reloadPetProfiles();
@@ -89,6 +90,8 @@ public:
     Q_INVOKABLE bool exportPetPack(const QString &petId, const QString &folderUrl);
     Q_INVOKABLE bool createPet(const QString &name, const QString &type);
     Q_INVOKABLE bool deletePet(const QString &petId);
+    Q_INVOKABLE QStringList availableSamplePets() const;
+    Q_INVOKABLE bool installSamplePet(const QString &sampleId);
     Q_INVOKABLE void quit();
 
 signals:

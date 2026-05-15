@@ -192,6 +192,35 @@ Window {
             }
 
             Button {
+                id: sampleButton
+                text: qsTr("Generate Sample")
+                enabled: appController.availableSamplePets().length > 0
+                onClicked: sampleMenu.open()
+
+                Menu {
+                    id: sampleMenu
+                    y: sampleButton.height
+
+                    Instantiator {
+                        model: appController.availableSamplePets()
+                        delegate: MenuItem {
+                            text: modelData
+                            onTriggered: {
+                                if (appController.installSamplePet(modelData)) {
+                                    root.statusMessage = qsTr("Sample pet installed")
+                                    root.refreshPets()
+                                } else {
+                                    root.statusMessage = appController.lastError
+                                }
+                            }
+                        }
+                        onObjectAdded: (index, object) => sampleMenu.insertItem(index, object)
+                        onObjectRemoved: (index, object) => sampleMenu.removeItem(object)
+                    }
+                }
+            }
+
+            Button {
                 text: qsTr("Refresh")
                 onClicked: root.refreshPets()
             }
@@ -297,6 +326,7 @@ Window {
                     PetPreviewPanel {
                         selectedPet: root.selectedPet
                         previewAction: root.previewAction
+                        view3dOverride: root.selectedPet.type === "3d" ? pet3DEditor.liveValues : null
                         onPreviewRequested: (action, duration) => root.setPreview(action, duration)
                         onUseRequested: appController.currentPetId = root.selectedPet.id
                     }
@@ -315,6 +345,7 @@ Window {
                     Pet3DEditor {
                         id: pet3DEditor
                         selectedPet: root.selectedPet
+                        onPreviewRequested: (action, duration) => root.setPreview(action, duration)
                     }
 
                     Rectangle {

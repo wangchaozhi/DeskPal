@@ -141,6 +141,23 @@ bool PetCatalog::saveProfile(const PetProfile &pet, QString *error) const
         object.insert(QStringLiteral("animations"), animations);
     }
 
+    if (pet.type == QStringLiteral("3d")) {
+        QJsonObject view3d;
+        view3d.insert(QStringLiteral("cameraDistance"), pet.view3d.cameraDistance);
+        view3d.insert(QStringLiteral("cameraHeight"), pet.view3d.cameraHeight);
+        view3d.insert(QStringLiteral("cameraPitch"), pet.view3d.cameraPitch);
+        view3d.insert(QStringLiteral("modelRotationX"), pet.view3d.modelRotationX);
+        view3d.insert(QStringLiteral("modelRotationY"), pet.view3d.modelRotationY);
+        view3d.insert(QStringLiteral("modelRotationZ"), pet.view3d.modelRotationZ);
+        view3d.insert(QStringLiteral("modelPositionX"), pet.view3d.modelPositionX);
+        view3d.insert(QStringLiteral("modelPositionY"), pet.view3d.modelPositionY);
+        view3d.insert(QStringLiteral("modelPositionZ"), pet.view3d.modelPositionZ);
+        view3d.insert(QStringLiteral("lightBrightness"), pet.view3d.lightBrightness);
+        view3d.insert(QStringLiteral("lightPitch"), pet.view3d.lightPitch);
+        view3d.insert(QStringLiteral("lightYaw"), pet.view3d.lightYaw);
+        object.insert(QStringLiteral("view3d"), view3d);
+    }
+
     if (!pet.idleActions.isEmpty()) {
         object.insert(QStringLiteral("idleActions"), QJsonArray::fromStringList(pet.idleActions));
     }
@@ -279,6 +296,83 @@ bool PetCatalog::createPet(const QString &id, const QString &name, const QString
     return true;
 }
 
+QStringList PetCatalog::availableSamplePets() const
+{
+    return {QStringLiteral("sample_svg_2d"), QStringLiteral("sample_quick3d")};
+}
+
+bool PetCatalog::installSamplePet(const QString &sampleId, QString *error)
+{
+    if (!availableSamplePets().contains(sampleId)) {
+        if (error) {
+            *error = tr("Unknown sample pet");
+        }
+        return false;
+    }
+
+    const QString resourcePrefix = QStringLiteral(":/samples/%1").arg(sampleId);
+    QDir resourceDir(resourcePrefix);
+    if (!resourceDir.exists()) {
+        if (error) {
+            *error = tr("Sample pet resources missing");
+        }
+        return false;
+    }
+
+    QString targetName = sampleId;
+    int suffix = 1;
+    QString targetPath = QDir(writablePetsRoot()).filePath(targetName);
+    while (QFileInfo::exists(targetPath)) {
+        targetName = QStringLiteral("%1_%2").arg(sampleId).arg(suffix++);
+        targetPath = QDir(writablePetsRoot()).filePath(targetName);
+    }
+
+    if (!QDir().mkpath(targetPath)) {
+        if (error) {
+            *error = tr("Cannot create sample folder");
+        }
+        return false;
+    }
+
+    const QFileInfoList entries = resourceDir.entryInfoList(QDir::Files);
+    for (const QFileInfo &entry : entries) {
+        const QString destPath = QDir(targetPath).filePath(entry.fileName());
+        QFile::remove(destPath);
+        if (!QFile::copy(entry.absoluteFilePath(), destPath)) {
+            if (error) {
+                *error = tr("Failed to copy sample file %1").arg(entry.fileName());
+            }
+            QDir(targetPath).removeRecursively();
+            return false;
+        }
+
+        // Resource-extracted files inherit read-only permissions on some platforms.
+        QFile destFile(destPath);
+        destFile.setPermissions(destFile.permissions()
+                                | QFileDevice::WriteOwner | QFileDevice::WriteUser);
+    }
+
+    const QString jsonPath = QDir(targetPath).filePath(QStringLiteral("pet.json"));
+    QFile jsonFile(jsonPath);
+    if (jsonFile.open(QIODevice::ReadOnly)) {
+        const QByteArray content = jsonFile.readAll();
+        jsonFile.close();
+
+        QJsonDocument document = QJsonDocument::fromJson(content);
+        if (document.isObject()) {
+            QJsonObject object = document.object();
+            object.insert(QStringLiteral("id"), targetName);
+            if (jsonFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+                jsonFile.write(QJsonDocument(object).toJson(QJsonDocument::Indented));
+                jsonFile.close();
+            }
+        }
+    }
+
+    reload();
+    return true;
+}
+
 bool PetCatalog::deletePet(const QString &petId, QString *error)
 {
     const PetProfile pet = petById(petId);
@@ -409,6 +503,35 @@ PetProfile PetCatalog::readProfile(const QString &profilePath) const
     const QJsonObject animations = object.value(QStringLiteral("animations")).toObject();
     for (auto it = animations.constBegin(); it != animations.constEnd(); ++it) {
         profile.animations.insert(it.key(), it.value().toString());
+    }
+
+    const QJsonObject view3d = object.value(QStringLiteral("view3d")).toObject();
+    if (!view3d.isEmpty()) {
+        const PetView3D defaults;
+        profile.view3d.cameraDistance =
+            view3d.value(QStringLiteral("cameraDistance")).toDouble(defaults.cameraDistance);
+        profile.view3d.cameraHeight =
+            view3d.value(QStringLiteral("cameraHeight")).toDouble(defaults.cameraHeight);
+        profile.view3d.cameraPitch =
+            view3d.value(QStringLiteral("cameraPitch")).toDouble(defaults.cameraPitch);
+        profile.view3d.modelRotationX =
+            view3d.value(QStringLiteral("modelRotationX")).toDouble(defaults.modelRotationX);
+        profile.view3d.modelRotationY =
+            view3d.value(QStringLiteral("modelRotationY")).toDouble(defaults.modelRotationY);
+        profile.view3d.modelRotationZ =
+            view3d.value(QStringLiteral("modelRotationZ")).toDouble(defaults.modelRotationZ);
+        profile.view3d.modelPositionX =
+            view3d.value(QStringLiteral("modelPositionX")).toDouble(defaults.modelPositionX);
+        profile.view3d.modelPositionY =
+            view3d.value(QStringLiteral("modelPositionY")).toDouble(defaults.modelPositionY);
+        profile.view3d.modelPositionZ =
+            view3d.value(QStringLiteral("modelPositionZ")).toDouble(defaults.modelPositionZ);
+        profile.view3d.lightBrightness =
+            view3d.value(QStringLiteral("lightBrightness")).toDouble(defaults.lightBrightness);
+        profile.view3d.lightPitch =
+            view3d.value(QStringLiteral("lightPitch")).toDouble(defaults.lightPitch);
+        profile.view3d.lightYaw =
+            view3d.value(QStringLiteral("lightYaw")).toDouble(defaults.lightYaw);
     }
 
     const QJsonArray idleActions = object.value(QStringLiteral("idleActions")).toArray();

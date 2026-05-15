@@ -66,6 +66,59 @@ QString slugifyPetId(const QString &name)
     return slug.isEmpty() ? QStringLiteral("pet") : slug;
 }
 
+QVariantMap view3dToMap(const PetView3D &view)
+{
+    QVariantMap map;
+    map.insert(QStringLiteral("cameraDistance"), view.cameraDistance);
+    map.insert(QStringLiteral("cameraHeight"), view.cameraHeight);
+    map.insert(QStringLiteral("cameraPitch"), view.cameraPitch);
+    map.insert(QStringLiteral("modelRotationX"), view.modelRotationX);
+    map.insert(QStringLiteral("modelRotationY"), view.modelRotationY);
+    map.insert(QStringLiteral("modelRotationZ"), view.modelRotationZ);
+    map.insert(QStringLiteral("modelPositionX"), view.modelPositionX);
+    map.insert(QStringLiteral("modelPositionY"), view.modelPositionY);
+    map.insert(QStringLiteral("modelPositionZ"), view.modelPositionZ);
+    map.insert(QStringLiteral("lightBrightness"), view.lightBrightness);
+    map.insert(QStringLiteral("lightPitch"), view.lightPitch);
+    map.insert(QStringLiteral("lightYaw"), view.lightYaw);
+    return map;
+}
+
+QStringList expectedExtensionsFor(const QString &renderer)
+{
+    if (renderer == QStringLiteral("qml")) {
+        return {QStringLiteral("qml")};
+    }
+    if (renderer == QStringLiteral("svg")) {
+        return {QStringLiteral("svg")};
+    }
+    if (renderer == QStringLiteral("gif")) {
+        return {QStringLiteral("gif")};
+    }
+    if (renderer == QStringLiteral("apng")) {
+        return {QStringLiteral("png"), QStringLiteral("apng")};
+    }
+    if (renderer == QStringLiteral("glb")) {
+        return {QStringLiteral("glb")};
+    }
+    if (renderer == QStringLiteral("gltf")) {
+        return {QStringLiteral("gltf")};
+    }
+    if (renderer == QStringLiteral("quick3d")) {
+        return {QStringLiteral("qml")};
+    }
+    return {};
+}
+
+bool extensionMatches(const QString &fileName, const QStringList &allowed)
+{
+    if (allowed.isEmpty()) {
+        return true;
+    }
+    const QString suffix = QFileInfo(fileName).suffix().toLower();
+    return allowed.contains(suffix);
+}
+
 QStringList validatePet(const PetProfile &pet)
 {
     QStringList issues;
@@ -82,15 +135,34 @@ QStringList validatePet(const PetProfile &pet)
         issues.append(QObject::tr("Missing renderer"));
     }
 
+    if (pet.width != 0 && (pet.width < 32 || pet.width > 4000)) {
+        issues.append(QObject::tr("Width must be between 32 and 4000"));
+    }
+    if (pet.height != 0 && (pet.height < 32 || pet.height > 4000)) {
+        issues.append(QObject::tr("Height must be between 32 and 4000"));
+    }
+    if (pet.scale <= 0.0 || pet.scale > 10.0) {
+        issues.append(QObject::tr("Scale must be between 0.1 and 10"));
+    }
+    if (pet.renderer == QStringLiteral("png-sequence") && pet.fps <= 0) {
+        issues.append(QObject::tr("Frame rate must be greater than zero for png-sequence"));
+    }
+
     if (pet.basePath.isEmpty()) {
         return issues;
     }
 
+    const QStringList expectedExtensions = expectedExtensionsFor(pet.renderer);
     const bool needsSourceFile = pet.renderer != QStringLiteral("png-sequence");
     if (pet.source.isEmpty()) {
         issues.append(QObject::tr("Missing source"));
-    } else if (needsSourceFile && !QFileInfo::exists(petResourcePath(pet, pet.source))) {
-        issues.append(QObject::tr("Source not found"));
+    } else if (needsSourceFile) {
+        if (!QFileInfo::exists(petResourcePath(pet, pet.source))) {
+            issues.append(QObject::tr("Source not found"));
+        } else if (!extensionMatches(pet.source, expectedExtensions)) {
+            issues.append(QObject::tr("Source extension does not match renderer %1")
+                              .arg(pet.renderer));
+        }
     }
 
     if (pet.renderer == QStringLiteral("png-sequence")) {
@@ -120,6 +192,21 @@ QStringList validatePet(const PetProfile &pet)
             }
         } else if (!QFileInfo::exists(actionPath)) {
             issues.append(QObject::tr("Action resource not found: %1").arg(action));
+        } else if (!extensionMatches(actionSource, expectedExtensions)) {
+            issues.append(QObject::tr("Action %1 extension does not match renderer %2")
+                              .arg(action, pet.renderer));
+        }
+    }
+
+    for (auto it = pet.animations.constBegin(); it != pet.animations.constEnd(); ++it) {
+        if (!expectedActions.contains(it.key())) {
+            issues.append(QObject::tr("Animation clip references unknown action: %1").arg(it.key()));
+        }
+    }
+
+    for (const QString &idleAction : pet.idleActions) {
+        if (!expectedActions.contains(idleAction)) {
+            issues.append(QObject::tr("Idle action references unknown action: %1").arg(idleAction));
         }
     }
 
@@ -496,6 +583,11 @@ QString AppController::petAnimationClip(const QString &petId, const QString &act
     return m_petCatalog->petById(petId).animations.value(action);
 }
 
+QVariantMap AppController::petView3d(const QString &petId) const
+{
+    return view3dToMap(m_petCatalog->petById(petId).view3d);
+}
+
 QString AppController::randomSpeech() const
 {
     QStringList phrases = m_petCatalog->petById(m_currentPetId).speeches;
@@ -546,6 +638,7 @@ QVariantList AppController::petProfiles() const
             animations.insert(it.key(), it.value());
         }
         profile.insert(QStringLiteral("animations"), animations);
+        profile.insert(QStringLiteral("view3d"), view3dToMap(pet.view3d));
 
         profile.insert(QStringLiteral("isValid"), issues.isEmpty());
         profile.insert(QStringLiteral("issueText"), issues.isEmpty() ? tr("Ready") : issues.join(QStringLiteral("\n")));
@@ -626,6 +719,33 @@ bool AppController::savePetProfile(const QVariantMap &profile)
             }
         }
     }
+    if (profile.contains(QStringLiteral("view3d"))) {
+        const QVariantMap view = profile.value(QStringLiteral("view3d")).toMap();
+        pet.view3d.cameraDistance =
+            view.value(QStringLiteral("cameraDistance"), pet.view3d.cameraDistance).toReal();
+        pet.view3d.cameraHeight =
+            view.value(QStringLiteral("cameraHeight"), pet.view3d.cameraHeight).toReal();
+        pet.view3d.cameraPitch =
+            view.value(QStringLiteral("cameraPitch"), pet.view3d.cameraPitch).toReal();
+        pet.view3d.modelRotationX =
+            view.value(QStringLiteral("modelRotationX"), pet.view3d.modelRotationX).toReal();
+        pet.view3d.modelRotationY =
+            view.value(QStringLiteral("modelRotationY"), pet.view3d.modelRotationY).toReal();
+        pet.view3d.modelRotationZ =
+            view.value(QStringLiteral("modelRotationZ"), pet.view3d.modelRotationZ).toReal();
+        pet.view3d.modelPositionX =
+            view.value(QStringLiteral("modelPositionX"), pet.view3d.modelPositionX).toReal();
+        pet.view3d.modelPositionY =
+            view.value(QStringLiteral("modelPositionY"), pet.view3d.modelPositionY).toReal();
+        pet.view3d.modelPositionZ =
+            view.value(QStringLiteral("modelPositionZ"), pet.view3d.modelPositionZ).toReal();
+        pet.view3d.lightBrightness =
+            view.value(QStringLiteral("lightBrightness"), pet.view3d.lightBrightness).toReal();
+        pet.view3d.lightPitch =
+            view.value(QStringLiteral("lightPitch"), pet.view3d.lightPitch).toReal();
+        pet.view3d.lightYaw =
+            view.value(QStringLiteral("lightYaw"), pet.view3d.lightYaw).toReal();
+    }
     if (profile.contains(QStringLiteral("idleActions"))) {
         pet.idleActions = profile.value(QStringLiteral("idleActions")).toStringList();
     }
@@ -693,6 +813,25 @@ bool AppController::createPet(const QString &name, const QString &type)
 
     QString error;
     if (!m_petCatalog->createPet(uniqueId, trimmedName, type, &error)) {
+        setLastError(error);
+        return false;
+    }
+
+    m_tray->setPets(m_petCatalog->pets());
+    m_tray->setCurrentPet(m_currentPetId);
+    setLastError(QString());
+    return true;
+}
+
+QStringList AppController::availableSamplePets() const
+{
+    return m_petCatalog->availableSamplePets();
+}
+
+bool AppController::installSamplePet(const QString &sampleId)
+{
+    QString error;
+    if (!m_petCatalog->installSamplePet(sampleId, &error)) {
         setLastError(error);
         return false;
     }

@@ -7,6 +7,7 @@ Rectangle {
 
     property var selectedPet: ({})
     property string previewAction: "idle"
+    property var view3dOverride: null
 
     signal previewRequested(string action, int duration)
     signal useRequested()
@@ -136,6 +137,7 @@ Rectangle {
             petId: root.selectedPet.id || ""
             renderer: root.selectedPet.renderer || "quick3d"
             source: root.selectedPet.source || ""
+            view3d: root.view3dOverride !== null ? root.view3dOverride : (root.selectedPet.view3d || ({}))
         }
     }
 

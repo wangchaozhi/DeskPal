@@ -5,7 +5,7 @@ project(DeskPal VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Quick3D QuickControls2 Widgets LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Quick Quick3D Quick3DAssetUtils QuickControls2 Widgets LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -42,6 +42,19 @@ qt_add_qml_module(DeskPal
         qml/Pet3DEditor.qml
 )
 
+qt_add_resources(DeskPal "sample_pets"
+    PREFIX "/samples"
+    BASE "assets/pets"
+    FILES
+        assets/pets/sample_svg_2d/pet.json
+        assets/pets/sample_svg_2d/idle.svg
+        assets/pets/sample_svg_2d/happy.svg
+        assets/pets/sample_svg_2d/sleepy.svg
+        assets/pets/sample_svg_2d/dragging.svg
+        assets/pets/sample_quick3d/pet.json
+        assets/pets/sample_quick3d/SampleQuick3DPet.qml
+)
+
 qt_add_translations(DeskPal
     TS_FILES
         translations/DeskPal_zh_CN.ts
@@ -65,6 +78,7 @@ target_link_libraries(DeskPal
     PRIVATE
         Qt6::Quick
         Qt6::Quick3D
+        Qt6::Quick3DAssetUtils
         Qt6::QuickControls2
         Qt6::Widgets
 )

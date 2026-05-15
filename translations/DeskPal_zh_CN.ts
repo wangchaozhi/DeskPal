@@ -128,12 +128,64 @@
 <context>
     <name>Pet3DEditor</name>
     <message>
-        <source>3D Settings</source>
-        <translation>3D 设置</translation>
+        <source>3D Stage</source>
+        <translation>3D 舞台</translation>
     </message>
     <message>
-        <source>Model transform, camera, and lighting controls will live here.</source>
-        <translation>模型变换、相机和灯光控制会放在这里。</translation>
+        <source>Adjust camera framing, model transform, and lighting. Changes apply after saving.</source>
+        <translation>调整相机取景、模型变换与灯光，保存后生效。</translation>
+    </message>
+    <message>
+        <source>Camera Distance</source>
+        <translation>相机距离</translation>
+    </message>
+    <message>
+        <source>Camera Height</source>
+        <translation>相机高度</translation>
+    </message>
+    <message>
+        <source>Camera Pitch</source>
+        <translation>相机俯仰</translation>
+    </message>
+    <message>
+        <source>Light Brightness %</source>
+        <translation>灯光亮度 %</translation>
+    </message>
+    <message>
+        <source>Light Pitch</source>
+        <translation>灯光俯仰</translation>
+    </message>
+    <message>
+        <source>Light Yaw</source>
+        <translation>灯光偏航</translation>
+    </message>
+    <message>
+        <source>Rotation X</source>
+        <translation>旋转 X</translation>
+    </message>
+    <message>
+        <source>Rotation Y</source>
+        <translation>旋转 Y</translation>
+    </message>
+    <message>
+        <source>Rotation Z</source>
+        <translation>旋转 Z</translation>
+    </message>
+    <message>
+        <source>Position X</source>
+        <translation>位置 X</translation>
+    </message>
+    <message>
+        <source>Position Y</source>
+        <translation>位置 Y</translation>
+    </message>
+    <message>
+        <source>Position Z</source>
+        <translation>位置 Z</translation>
+    </message>
+    <message>
+        <source>Preview</source>
+        <translation>预览</translation>
     </message>
     <message>
         <source>Action Resources</source>
@@ -334,6 +386,14 @@
         <source>Select an export destination</source>
         <translation>选择导出位置</translation>
     </message>
+    <message>
+        <source>Generate Sample</source>
+        <translation>生成示例</translation>
+    </message>
+    <message>
+        <source>Sample pet installed</source>
+        <translation>示例宠物已安装</translation>
+    </message>
 </context>
 <context>
     <name>AppController</name>
@@ -432,6 +492,22 @@
         <source>Failed to delete pet folder</source>
         <translation>删除宠物文件夹失败</translation>
     </message>
+    <message>
+        <source>Unknown sample pet</source>
+        <translation>未知示例宠物</translation>
+    </message>
+    <message>
+        <source>Sample pet resources missing</source>
+        <translation>示例宠物资源缺失</translation>
+    </message>
+    <message>
+        <source>Cannot create sample folder</source>
+        <translation>无法创建示例文件夹</translation>
+    </message>
+    <message>
+        <source>Failed to copy sample file %1</source>
+        <translation>复制示例文件 %1 失败</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -478,6 +554,38 @@
     <message>
         <source>Ready</source>
         <translation>就绪</translation>
+    </message>
+    <message>
+        <source>Width must be between 32 and 4000</source>
+        <translation>宽度需要在 32 到 4000 之间</translation>
+    </message>
+    <message>
+        <source>Height must be between 32 and 4000</source>
+        <translation>高度需要在 32 到 4000 之间</translation>
+    </message>
+    <message>
+        <source>Scale must be between 0.1 and 10</source>
+        <translation>缩放需要在 0.1 到 10 之间</translation>
+    </message>
+    <message>
+        <source>Frame rate must be greater than zero for png-sequence</source>
+        <translation>png-sequence 的帧率必须大于 0</translation>
+    </message>
+    <message>
+        <source>Source extension does not match renderer %1</source>
+        <translation>资源入口扩展名与渲染器 %1 不匹配</translation>
+    </message>
+    <message>
+        <source>Action %1 extension does not match renderer %2</source>
+        <translation>动作 %1 的扩展名与渲染器 %2 不匹配</translation>
+    </message>
+    <message>
+        <source>Animation clip references unknown action: %1</source>
+        <translation>动画片段引用了未知动作：%1</translation>
+    </message>
+    <message>
+        <source>Idle action references unknown action: %1</source>
+        <translation>待机动作引用了未知动作：%1</translation>
     </message>
 </context>
 <context>
