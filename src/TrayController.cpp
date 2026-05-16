@@ -93,10 +93,8 @@ void TrayController::setCurrentPet(const QString &petId)
 
 void TrayController::setActions(const QStringList &actions)
 {
-    if (m_currentActions == actions || !m_actionMenu) {
-        if (m_currentActions == actions) {
-            return;
-        }
+    if (!m_actionMenu || m_currentActions == actions) {
+        return;
     }
 
     for (QAction *action : m_actionEntries) {
@@ -115,7 +113,20 @@ void TrayController::setActions(const QStringList &actions)
         m_actionEntries.append(action);
     }
 
-    retranslate();
+    refreshActionLabels();
+}
+
+void TrayController::refreshActionLabels()
+{
+    for (int i = 0; i < m_actionEntries.size() && i < m_currentActions.size(); ++i) {
+        const QString &name = m_currentActions.at(i);
+        QString label = name;
+        if (name == QStringLiteral("idle")) label = tr("Idle");
+        else if (name == QStringLiteral("happy")) label = tr("Happy");
+        else if (name == QStringLiteral("sleepy")) label = tr("Sleepy");
+        else if (name == QStringLiteral("dragging")) label = tr("Dragging");
+        m_actionEntries.at(i)->setText(label);
+    }
 }
 
 void TrayController::showContextMenu()
@@ -209,16 +220,7 @@ void TrayController::retranslate()
     m_alwaysOnTopAction->setText(tr("Always on Top"));
     m_settingsAction->setText(tr("Pet Settings"));
     m_actionMenu->setTitle(tr("Action"));
-    for (int i = 0; i < m_actionEntries.size() && i < m_currentActions.size(); ++i) {
-        const QString &name = m_currentActions.at(i);
-        // Translate well-known names; fall back to the raw name for custom actions.
-        QString label = name;
-        if (name == QStringLiteral("idle")) label = tr("Idle");
-        else if (name == QStringLiteral("happy")) label = tr("Happy");
-        else if (name == QStringLiteral("sleepy")) label = tr("Sleepy");
-        else if (name == QStringLiteral("dragging")) label = tr("Dragging");
-        m_actionEntries.at(i)->setText(label);
-    }
+    refreshActionLabels();
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));

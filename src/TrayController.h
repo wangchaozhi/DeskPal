@@ -42,6 +42,7 @@ signals:
 private:
     void createMenu();
     void retranslate();
+    void refreshActionLabels();
 
     QScopedPointer<QSystemTrayIcon> m_trayIcon;
     QMenu *m_trayMenu = nullptr;
