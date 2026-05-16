@@ -27,11 +27,38 @@ AccentCard {
 
     function buildActionModel(source) {
         const result = []
+        const seen = {}
         for (let i = 0; i < actionNames.length; ++i) {
             const name = actionNames[i]
-            result.push({ "name": name, "value": source && source[name] ? source[name] : "" })
+            result.push({ "name": name, "value": source && source[name] ? source[name] : "", "removable": false })
+            seen[name] = true
+        }
+        if (source) {
+            for (const key in source) {
+                if (!seen[key]) {
+                    result.push({ "name": key, "value": source[key], "removable": true })
+                }
+            }
         }
         return result
+    }
+
+    function addCustomAction(name) {
+        const trimmed = name.trim()
+        if (trimmed.length === 0) return false
+        for (let i = 0; i < actionEditModel.length; ++i) {
+            if (actionEditModel[i].name === trimmed) return false
+        }
+        actionEditModel = actionEditModel.concat([{ "name": trimmed, "value": "", "removable": true }])
+        return true
+    }
+
+    function removeAction(name) {
+        const next = []
+        for (let i = 0; i < actionEditModel.length; ++i) {
+            if (actionEditModel[i].name !== name) next.push(actionEditModel[i])
+        }
+        actionEditModel = next
     }
 
     function resetFields() {
@@ -116,6 +143,33 @@ AccentCard {
                         onClicked: root.browseForRenderer(function(rel) {
                             actionField.text = rel
                         })
+                    }
+                    Button {
+                        text: "×"
+                        Layout.preferredWidth: 28
+                        visible: modelData.removable === true
+                        enabled: root.selectedPet.editable === true
+                        onClicked: root.removeAction(modelData.name)
+                    }
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            enabled: root.selectedPet.editable === true
+
+            TextField {
+                id: newActionField
+                Layout.fillWidth: true
+                placeholderText: qsTr("Custom action name")
+            }
+            Button {
+                text: qsTr("Add Action")
+                onClicked: {
+                    if (root.addCustomAction(newActionField.text)) {
+                        newActionField.text = ""
                     }
                 }
             }

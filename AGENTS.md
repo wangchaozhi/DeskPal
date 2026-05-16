@@ -292,19 +292,30 @@ git diff --stat
 
 ## 当前后续方向
 
-已完成：
+已完成（截至 2026-05）：
 
-- 外部宠物资源校验和缺失提示。
-- 配置面板第二阶段 2D 编辑、保存 `pet.json`。
-- 配置面板第三阶段动作到动画片段映射（数据层）。
-- `png-sequence` 帧率配置。
-- 示例宠物包。
-- 宠物包导入 / 导出。
-- 桌宠不透明度、Windows 开机自启、语音气泡、可配置随机 idle 动作。
+- 外部宠物资源校验、缺失提示、错误与未配置警告分级显示。
+- 配置面板：2D / 3D 编辑、`view3d` 嵌套块、`pet2d.fps` 嵌套块、保存到 `pet.json`。
+- 动作到动画片段映射；GLB/GLTF 经 `QtQuick3D.AssetUtils.RuntimeLoader` 加载并按片段名启用 Timeline。
+- 配置面板 3D 编辑实时驱动预览框与桌宠主体（`setLiveView3d` 通道）。
+- 新建宠物从 `sample_svg_2d` / `sample_quick3d` 模板复制资源。
+- 顶栏 `Generate Sample` 一键生成可编辑示例宠物副本。
+- 资源字段 `…` 浏览按钮，`appController.importPetAsset` 复制并回填路径。
+- 配置面板窗口位置 / 尺寸记忆。
+- 桌宠：右键托盘 `Action` 子菜单直接触发动作；双击 / 中键 → sleepy；拖到屏幕边缘自动贴边或短距走过去。
+- `SettingsStore` 增加 `nightSleepyEnabled`：22:00–07:00 把随机 idle 切到 sleepy。
+- 多语言：英文 / 简体中文 / 日语；`TranslationManager` 系统语言自动落点支持 `zh` / `ja`。
+- QML 卡片抽 `AccentCard` 组件，左侧彩色细条 + 统一内边距。
+- `validatePet` 拆 `validateMeta` / `validateAssets` / `validateReferences`。
+- `PetAsset3D` `RuntimeLoader` 动画 Timeline 缓存，避免 `applyClip` 重复遍历整棵场景。
 
-建议优先级：
+建议优先级（新一轮）：
 
-1. 3D 编辑：模型旋转/位置、相机距离、灯光参数、骨骼动画预览。
-2. GLB/GLTF 运行时动画的实际播放（目前仅完成片段名映射）。
-3. 更完整的资源校验规则（尺寸、格式、动画片段是否存在）。
-4. 配置面板内置示例宠物包一键生成。
+1. 自定义动作类型：解除 idle/happy/sleepy/dragging 四种固定名字的硬编码，让用户自由命名动作。
+2. 桌宠定时提醒：番茄钟 / 喝水 / 久坐，结合语音气泡或托盘通知。
+3. 多桌宠同屏 / 桌宠之间互动。
+4. 状态过渡动画（动作切换 fade-in / fade-out）。
+5. 自动化测试：用 `QTest` 锁住 `PetCatalog::readProfile` 兼容性和 `validatePet` 规则输出。
+6. 裁小 Release 包体积（windeployqt 收紧 Quick3D 模块白名单）。
+7. 日语翻译补齐（当前仅覆盖约 1/3 字符串）。
+8. CI 自动收集 commits 生成 release notes（已部分完成）。

@@ -91,6 +91,33 @@ void TrayController::setCurrentPet(const QString &petId)
     }
 }
 
+void TrayController::setActions(const QStringList &actions)
+{
+    if (m_currentActions == actions || !m_actionMenu) {
+        if (m_currentActions == actions) {
+            return;
+        }
+    }
+
+    for (QAction *action : m_actionEntries) {
+        m_actionMenu->removeAction(action);
+        action->deleteLater();
+    }
+    m_actionEntries.clear();
+    m_currentActions = actions;
+
+    for (const QString &name : m_currentActions) {
+        QAction *action = m_actionMenu->addAction(name);
+        action->setData(name);
+        connect(action, &QAction::triggered, this, [this, action]() {
+            emit actionTriggered(action->data().toString());
+        });
+        m_actionEntries.append(action);
+    }
+
+    retranslate();
+}
+
 void TrayController::showContextMenu()
 {
     if (m_trayMenu) {
@@ -122,19 +149,8 @@ void TrayController::createMenu()
     connect(m_settingsAction, &QAction::triggered, this, &TrayController::settingsRequested);
 
     m_actionMenu = m_trayMenu->addMenu(QString());
-    m_idleAction = m_actionMenu->addAction(QString());
-    m_idleAction->setData(QStringLiteral("idle"));
-    m_happyAction = m_actionMenu->addAction(QString());
-    m_happyAction->setData(QStringLiteral("happy"));
-    m_sleepyAction = m_actionMenu->addAction(QString());
-    m_sleepyAction->setData(QStringLiteral("sleepy"));
-    m_draggingAction = m_actionMenu->addAction(QString());
-    m_draggingAction->setData(QStringLiteral("dragging"));
-    for (QAction *a : {m_idleAction, m_happyAction, m_sleepyAction, m_draggingAction}) {
-        connect(a, &QAction::triggered, this, [this, a]() {
-            emit actionTriggered(a->data().toString());
-        });
-    }
+    setActions({QStringLiteral("idle"), QStringLiteral("happy"),
+                QStringLiteral("sleepy"), QStringLiteral("dragging")});
 
     m_languageMenu = m_trayMenu->addMenu(QString());
     m_languageActionGroup = new QActionGroup(this);
@@ -193,10 +209,16 @@ void TrayController::retranslate()
     m_alwaysOnTopAction->setText(tr("Always on Top"));
     m_settingsAction->setText(tr("Pet Settings"));
     m_actionMenu->setTitle(tr("Action"));
-    m_idleAction->setText(tr("Idle"));
-    m_happyAction->setText(tr("Happy"));
-    m_sleepyAction->setText(tr("Sleepy"));
-    m_draggingAction->setText(tr("Dragging"));
+    for (int i = 0; i < m_actionEntries.size() && i < m_currentActions.size(); ++i) {
+        const QString &name = m_currentActions.at(i);
+        // Translate well-known names; fall back to the raw name for custom actions.
+        QString label = name;
+        if (name == QStringLiteral("idle")) label = tr("Idle");
+        else if (name == QStringLiteral("happy")) label = tr("Happy");
+        else if (name == QStringLiteral("sleepy")) label = tr("Sleepy");
+        else if (name == QStringLiteral("dragging")) label = tr("Dragging");
+        m_actionEntries.at(i)->setText(label);
+    }
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));

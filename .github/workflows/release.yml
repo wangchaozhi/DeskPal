@@ -164,7 +164,9 @@ jobs:
           Copy-Item README.md $deployDir
           Copy-Item docs $deployDir -Recurse
           Copy-Item assets $deployDir -Recurse
-          windeployqt --release --qmldir "$PWD\qml" "$deployDir\${env:APP_NAME}.exe"
+          windeployqt --release --qmldir "$PWD\qml" `
+            --no-virtualkeyboard --no-translations --no-system-d3d-compiler `
+            "$deployDir\${env:APP_NAME}.exe"
 
           Compress-Archive -Path "$deployDir\*" -DestinationPath "$packageRoot\${{ matrix.asset_name }}.zip" -Force
 

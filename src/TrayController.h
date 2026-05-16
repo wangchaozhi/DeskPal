@@ -25,6 +25,7 @@ public:
     void setPetVisible(bool visible);
     void setPets(const QVector<PetProfile> &pets);
     void setCurrentPet(const QString &petId);
+    void setActions(const QStringList &actions);
     void showContextMenu();
 
 signals:
@@ -52,10 +53,8 @@ private:
     QAction *m_settingsAction = nullptr;
     QAction *m_resetAction = nullptr;
     QAction *m_quitAction = nullptr;
-    QAction *m_idleAction = nullptr;
-    QAction *m_happyAction = nullptr;
-    QAction *m_sleepyAction = nullptr;
-    QAction *m_draggingAction = nullptr;
+    QVector<QAction *> m_actionEntries;
+    QStringList m_currentActions;
     QActionGroup *m_languageActionGroup = nullptr;
     QActionGroup *m_petActionGroup = nullptr;
     QAction *m_systemLanguageAction = nullptr;

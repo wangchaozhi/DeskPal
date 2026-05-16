@@ -124,11 +124,23 @@ struct PetIssue {
     QString message;
 };
 
-QVector<PetIssue> validatePet(const PetProfile &pet)
+using IssueList = QVector<PetIssue>;
+
+const QStringList &expectedActionList()
 {
-    QVector<PetIssue> issues;
-    auto err = [&](const QString &m) { issues.push_back({true, m}); };
-    auto warn = [&](const QString &m) { issues.push_back({false, m}); };
+    static const QStringList kActions = {
+        QStringLiteral("idle"),
+        QStringLiteral("happy"),
+        QStringLiteral("sleepy"),
+        QStringLiteral("dragging"),
+    };
+    return kActions;
+}
+
+void validateMeta(const PetProfile &pet, IssueList &out)
+{
+    auto err = [&](const QString &m) { out.push_back({true, m}); };
+    auto warn = [&](const QString &m) { out.push_back({false, m}); };
 
     if (pet.id.isEmpty()) {
         err(QObject::tr("Missing pet ID"));
@@ -155,13 +167,16 @@ QVector<PetIssue> validatePet(const PetProfile &pet)
     if (pet.renderer == QStringLiteral("png-sequence") && pet.pet2d.fps <= 0) {
         warn(QObject::tr("Frame rate not set for png-sequence"));
     }
+}
 
-    if (pet.basePath.isEmpty()) {
-        return issues;
-    }
+void validateAssets(const PetProfile &pet, IssueList &out)
+{
+    auto err = [&](const QString &m) { out.push_back({true, m}); };
+    auto warn = [&](const QString &m) { out.push_back({false, m}); };
 
     const QStringList expectedExtensions = expectedExtensionsFor(pet.renderer);
     const bool needsSourceFile = pet.renderer != QStringLiteral("png-sequence");
+
     if (pet.source.isEmpty()) {
         warn(QObject::tr("Source not configured"));
     } else if (needsSourceFile) {
@@ -180,13 +195,7 @@ QVector<PetIssue> validatePet(const PetProfile &pet)
         }
     }
 
-    const QStringList expectedActions = {
-        QStringLiteral("idle"),
-        QStringLiteral("happy"),
-        QStringLiteral("sleepy"),
-        QStringLiteral("dragging"),
-    };
-    for (const QString &action : expectedActions) {
+    for (const QString &action : expectedActionList()) {
         const QString actionSource = pet.actions.value(action);
         if (actionSource.isEmpty()) {
             warn(QObject::tr("Action not configured: %1").arg(action));
@@ -205,19 +214,34 @@ QVector<PetIssue> validatePet(const PetProfile &pet)
                     .arg(action, pet.renderer));
         }
     }
+}
+
+void validateReferences(const PetProfile &pet, IssueList &out)
+{
+    auto warn = [&](const QString &m) { out.push_back({false, m}); };
+    const QStringList &actions = expectedActionList();
 
     for (auto it = pet.animations.constBegin(); it != pet.animations.constEnd(); ++it) {
-        if (!expectedActions.contains(it.key())) {
+        if (!actions.contains(it.key())) {
             warn(QObject::tr("Animation clip references unknown action: %1").arg(it.key()));
         }
     }
 
     for (const QString &idleAction : pet.idleActions) {
-        if (!expectedActions.contains(idleAction)) {
+        if (!actions.contains(idleAction)) {
             warn(QObject::tr("Idle action references unknown action: %1").arg(idleAction));
         }
     }
+}
 
+IssueList validatePet(const PetProfile &pet)
+{
+    IssueList issues;
+    validateMeta(pet, issues);
+    if (!pet.basePath.isEmpty()) {
+        validateAssets(pet, issues);
+    }
+    validateReferences(pet, issues);
     return issues;
 }
 } // namespace
@@ -274,7 +298,14 @@ AppController::~AppController() = default;
 
 void AppController::applyPetToActionController()
 {
-    m_actions->setIdleActions(m_petCatalog->petById(m_currentPetId).idleActions);
+    const PetProfile pet = m_petCatalog->petById(m_currentPetId);
+    m_actions->setIdleActions(pet.idleActions);
+
+    QStringList actionNames = pet.actions.keys();
+    actionNames.sort();
+    if (m_tray) {
+        m_tray->setActions(actionNames);
+    }
 }
 
 void AppController::setLastError(const QString &error)
@@ -974,6 +1005,16 @@ bool AppController::deletePet(const QString &petId)
     m_tray->setCurrentPet(m_currentPetId);
     setLastError(QString());
     return true;
+}
+
+QRect AppController::settingsWindowGeometry() const
+{
+    return m_settings->settingsWindowGeometry();
+}
+
+void AppController::saveSettingsWindowGeometry(int x, int y, int w, int h)
+{
+    m_settings->setSettingsWindowGeometry(QRect(x, y, w, h));
 }
 
 void AppController::quit()

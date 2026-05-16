@@ -94,3 +94,26 @@ install(TARGETS DeskPal
 install(DIRECTORY assets
     DESTINATION .
 )
+
+option(DESKPAL_BUILD_TESTS "Build DeskPal unit tests" OFF)
+
+if(DESKPAL_BUILD_TESTS)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    enable_testing()
+
+    qt_add_executable(test_pet_catalog
+        tests/test_pet_catalog.cpp
+        src/PetCatalog.cpp
+        src/PetCatalog.h
+    )
+
+    target_include_directories(test_pet_catalog PRIVATE src)
+
+    target_link_libraries(test_pet_catalog
+        PRIVATE
+            Qt6::Core
+            Qt6::Test
+    )
+
+    add_test(NAME pet_catalog COMMAND test_pet_catalog)
+endif()

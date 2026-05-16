@@ -86,6 +86,27 @@ Window {
         appController.setPetWalking(false)
     }
 
+    function snapToEdgeIfClose() {
+        const screen = appController.availableGeometry(x + width / 2, y + height / 2)
+        const minX = screen.x
+        const maxX = screen.x + screen.width - width
+        const distLeft = petWindow.x - minX
+        const distRight = maxX - petWindow.x
+        const snapImmediate = 24
+
+        if (distLeft < snapImmediate) {
+            petWindow.x = minX
+            appController.saveWindowPosition(petWindow.x, petWindow.y)
+        } else if (distLeft < petWindow.edgeSnapMargin) {
+            petWindow.walkTo(minX)
+        } else if (distRight < snapImmediate) {
+            petWindow.x = maxX
+            appController.saveWindowPosition(petWindow.x, petWindow.y)
+        } else if (distRight < petWindow.edgeSnapMargin) {
+            petWindow.walkTo(maxX)
+        }
+    }
+
     Connections {
         target: appController
 
@@ -237,7 +258,7 @@ Window {
     MouseArea {
         id: dragArea
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
         property point dragOffset: Qt.point(0, 0)
 
@@ -263,16 +284,7 @@ Window {
             if (mouse.button === Qt.LeftButton) {
                 appController.setPetDragging(false)
                 appController.saveWindowPosition(petWindow.x, petWindow.y)
-
-                const screen = appController.availableGeometry(petWindow.x + petWindow.width / 2,
-                                                               petWindow.y + petWindow.height / 2)
-                const minX = screen.x
-                const maxX = screen.x + screen.width - petWindow.width
-                if (petWindow.x - minX < petWindow.edgeSnapMargin) {
-                    petWindow.walkTo(minX)
-                } else if (maxX - petWindow.x < petWindow.edgeSnapMargin) {
-                    petWindow.walkTo(maxX)
-                }
+                petWindow.snapToEdgeIfClose()
             }
         }
 
@@ -280,6 +292,14 @@ Window {
             if (mouse.button === Qt.LeftButton) {
                 appController.triggerPetAction("happy", 1600)
                 petWindow.showSpeech()
+            } else if (mouse.button === Qt.MiddleButton) {
+                appController.triggerPetAction("sleepy", 2200)
+            }
+        }
+
+        onDoubleClicked: mouse => {
+            if (mouse.button === Qt.LeftButton) {
+                appController.triggerPetAction("sleepy", 2400)
             }
         }
     }

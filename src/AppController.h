@@ -100,6 +100,8 @@ public:
     Q_INVOKABLE QStringList availableSamplePets() const;
     Q_INVOKABLE bool installSamplePet(const QString &sampleId);
     Q_INVOKABLE QString importPetAsset(const QString &petId, const QString &fileUrl);
+    Q_INVOKABLE QRect settingsWindowGeometry() const;
+    Q_INVOKABLE void saveSettingsWindowGeometry(int x, int y, int w, int h);
     Q_INVOKABLE void quit();
 
 signals:

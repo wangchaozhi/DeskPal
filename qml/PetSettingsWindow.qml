@@ -65,10 +65,32 @@ Window {
     onVisibleChanged: {
         if (!visible) {
             appController.clearLiveView3d()
+            appController.saveSettingsWindowGeometry(x, y, width, height)
         }
     }
 
     onSelectedPetChanged: appController.clearLiveView3d()
+
+    Component.onCompleted: {
+        const saved = appController.settingsWindowGeometry()
+        if (saved && saved.width > 0 && saved.height > 0) {
+            x = saved.x
+            y = saved.y
+            width = Math.max(minimumWidth, saved.width)
+            height = Math.max(minimumHeight, saved.height)
+        }
+    }
+
+    Timer {
+        id: geometrySaveTimer
+        interval: 600
+        onTriggered: appController.saveSettingsWindowGeometry(root.x, root.y, root.width, root.height)
+    }
+
+    onXChanged: if (visible) geometrySaveTimer.restart()
+    onYChanged: if (visible) geometrySaveTimer.restart()
+    onWidthChanged: if (visible) geometrySaveTimer.restart()
+    onHeightChanged: if (visible) geometrySaveTimer.restart()
 
     FolderDialog {
         id: importDialog

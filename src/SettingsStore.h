@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QRect>
 #include <QString>
 
 class SettingsStore : public QObject
@@ -36,4 +37,7 @@ public:
 
     bool nightSleepyEnabled() const;
     void setNightSleepyEnabled(bool enabled);
+
+    QRect settingsWindowGeometry() const;
+    void setSettingsWindowGeometry(const QRect &geometry);
 };

@@ -32,7 +32,11 @@ if exist "%DEPLOY_DIR%\appQt_Template.exe" del /q "%DEPLOY_DIR%\appQt_Template.e
 if exist "%DEPLOY_DIR%\qml" rmdir /s /q "%DEPLOY_DIR%\qml"
 if exist "%DEPLOY_DIR%\Qt6QuickControls2.dll" del /q "%DEPLOY_DIR%\Qt6QuickControls2*.dll"
 
-"%QT_PREFIX%\bin\windeployqt.exe" --release --qmldir "%ROOT_DIR%\qml" "%APP_EXE%"
+"%QT_PREFIX%\bin\windeployqt.exe" --release --qmldir "%ROOT_DIR%\qml" ^
+    --no-virtualkeyboard ^
+    --no-translations ^
+    --no-system-d3d-compiler ^
+    "%APP_EXE%"
 if errorlevel 1 exit /b %errorlevel%
 
 xcopy /e /i /y "%ROOT_DIR%\assets" "%DEPLOY_DIR%\assets" >nul

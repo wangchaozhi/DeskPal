@@ -16,6 +16,7 @@ constexpr auto kCurrentPetId = "pet/currentPetId";
 constexpr auto kPetOpacity = "pet/opacity";
 constexpr auto kWanderEnabled = "pet/wander";
 constexpr auto kNightSleepyEnabled = "pet/nightSleepy";
+constexpr auto kSettingsWindowGeometry = "ui/settingsGeometry";
 constexpr auto kDefaultWindowPositionX = 120;
 constexpr auto kDefaultWindowPositionY = 120;
 constexpr auto kDefaultLanguage = "system";
@@ -181,6 +182,18 @@ void SettingsStore::setNightSleepyEnabled(bool enabled)
 {
     QSettings settings;
     settings.setValue(kNightSleepyEnabled, enabled);
+}
+
+QRect SettingsStore::settingsWindowGeometry() const
+{
+    QSettings settings;
+    return settings.value(kSettingsWindowGeometry, QRect()).toRect();
+}
+
+void SettingsStore::setSettingsWindowGeometry(const QRect &geometry)
+{
+    QSettings settings;
+    settings.setValue(kSettingsWindowGeometry, geometry);
 }
 
 bool SettingsStore::autoStartEnabled() const

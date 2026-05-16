@@ -132,6 +132,14 @@
         <source>Action Resources</source>
         <translation>动作资源</translation>
     </message>
+    <message>
+        <source>Custom action name</source>
+        <translation>自定义动作名</translation>
+    </message>
+    <message>
+        <source>Add Action</source>
+        <translation>添加动作</translation>
+    </message>
 </context>
 <context>
     <name>Pet3DEditor</name>
@@ -198,6 +206,14 @@
     <message>
         <source>Action Resources</source>
         <translation>动作资源</translation>
+    </message>
+    <message>
+        <source>Custom action name</source>
+        <translation>自定义动作名</translation>
+    </message>
+    <message>
+        <source>Add Action</source>
+        <translation>添加动作</translation>
     </message>
     <message>
         <source>Animation Clips</source>
@@ -391,10 +407,6 @@
         <translation>动作资源</translation>
     </message>
     <message>
-        <source>Animation Clips (3D)</source>
-        <translation>动画片段（3D）</translation>
-    </message>
-    <message>
         <source>Save Configuration</source>
         <translation>保存配置</translation>
     </message>
@@ -560,10 +572,6 @@
         <translation>缺少渲染器</translation>
     </message>
     <message>
-        <source>Missing source</source>
-        <translation>缺少资源入口</translation>
-    </message>
-    <message>
         <source>Source not configured</source>
         <translation>未配置资源入口</translation>
     </message>
@@ -572,16 +580,8 @@
         <translation>资源文件不存在：%1</translation>
     </message>
     <message>
-        <source>Source not found</source>
-        <translation>找不到资源入口</translation>
-    </message>
-    <message>
         <source>No frames in source directory</source>
         <translation>资源目录中没有帧图片</translation>
-    </message>
-    <message>
-        <source>Missing action: %1</source>
-        <translation>缺少动作：%1</translation>
     </message>
     <message>
         <source>Action not configured: %1</source>

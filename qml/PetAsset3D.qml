@@ -55,6 +55,10 @@ Item {
         }
     }
 
+    function viewProp(key, fallback) {
+        return view3d && view3d[key] !== undefined ? view3d[key] : fallback
+    }
+
     Component {
         id: modelFileComponent
 
@@ -70,26 +74,24 @@ Item {
             }
 
             PerspectiveCamera {
-                position: Qt.vector3d(0,
-                                      root.view3d.cameraHeight !== undefined ? root.view3d.cameraHeight : 100,
-                                      root.view3d.cameraDistance !== undefined ? root.view3d.cameraDistance : 360)
-                eulerRotation.x: root.view3d.cameraPitch !== undefined ? root.view3d.cameraPitch : -12
+                position: Qt.vector3d(0, root.viewProp("cameraHeight", 100), root.viewProp("cameraDistance", 360))
+                eulerRotation.x: root.viewProp("cameraPitch", -12)
             }
 
             DirectionalLight {
-                eulerRotation.x: root.view3d.lightPitch !== undefined ? root.view3d.lightPitch : -38
-                eulerRotation.y: root.view3d.lightYaw !== undefined ? root.view3d.lightYaw : 28
-                brightness: root.view3d.lightBrightness !== undefined ? root.view3d.lightBrightness : 1.4
+                eulerRotation.x: root.viewProp("lightPitch", -38)
+                eulerRotation.y: root.viewProp("lightYaw", 28)
+                brightness: root.viewProp("lightBrightness", 1.4)
             }
 
             Node {
                 id: transformNode
-                position: Qt.vector3d(root.view3d.modelPositionX !== undefined ? root.view3d.modelPositionX : 0,
-                                      root.view3d.modelPositionY !== undefined ? root.view3d.modelPositionY : 0,
-                                      root.view3d.modelPositionZ !== undefined ? root.view3d.modelPositionZ : 0)
-                eulerRotation: Qt.vector3d(root.view3d.modelRotationX !== undefined ? root.view3d.modelRotationX : 0,
-                                           root.view3d.modelRotationY !== undefined ? root.view3d.modelRotationY : 0,
-                                           root.view3d.modelRotationZ !== undefined ? root.view3d.modelRotationZ : 0)
+                position: Qt.vector3d(root.viewProp("modelPositionX", 0),
+                                      root.viewProp("modelPositionY", 0),
+                                      root.viewProp("modelPositionZ", 0))
+                eulerRotation: Qt.vector3d(root.viewProp("modelRotationX", 0),
+                                           root.viewProp("modelRotationY", 0),
+                                           root.viewProp("modelRotationZ", 0))
 
                 Node {
                     id: petNode
