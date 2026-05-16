@@ -36,6 +36,7 @@ signals:
     void petChanged(const QString &petId);
     void settingsRequested();
     void quitRequested();
+    void actionTriggered(const QString &action);
 
 private:
     void createMenu();
@@ -44,12 +45,17 @@ private:
     QScopedPointer<QSystemTrayIcon> m_trayIcon;
     QMenu *m_trayMenu = nullptr;
     QMenu *m_petMenu = nullptr;
+    QMenu *m_actionMenu = nullptr;
     QMenu *m_languageMenu = nullptr;
     QAction *m_toggleVisibilityAction = nullptr;
     QAction *m_alwaysOnTopAction = nullptr;
     QAction *m_settingsAction = nullptr;
     QAction *m_resetAction = nullptr;
     QAction *m_quitAction = nullptr;
+    QAction *m_idleAction = nullptr;
+    QAction *m_happyAction = nullptr;
+    QAction *m_sleepyAction = nullptr;
+    QAction *m_draggingAction = nullptr;
     QActionGroup *m_languageActionGroup = nullptr;
     QActionGroup *m_petActionGroup = nullptr;
     QAction *m_systemLanguageAction = nullptr;

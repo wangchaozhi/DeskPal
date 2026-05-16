@@ -27,6 +27,10 @@
         <translation>ペット</translation>
     </message>
     <message>
+        <source>Action</source>
+        <translation>動作</translation>
+    </message>
+    <message>
         <source>Language</source>
         <translation>言語</translation>
     </message>

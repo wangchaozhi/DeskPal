@@ -121,6 +121,21 @@ void TrayController::createMenu()
     m_settingsAction = m_trayMenu->addAction(QString());
     connect(m_settingsAction, &QAction::triggered, this, &TrayController::settingsRequested);
 
+    m_actionMenu = m_trayMenu->addMenu(QString());
+    m_idleAction = m_actionMenu->addAction(QString());
+    m_idleAction->setData(QStringLiteral("idle"));
+    m_happyAction = m_actionMenu->addAction(QString());
+    m_happyAction->setData(QStringLiteral("happy"));
+    m_sleepyAction = m_actionMenu->addAction(QString());
+    m_sleepyAction->setData(QStringLiteral("sleepy"));
+    m_draggingAction = m_actionMenu->addAction(QString());
+    m_draggingAction->setData(QStringLiteral("dragging"));
+    for (QAction *a : {m_idleAction, m_happyAction, m_sleepyAction, m_draggingAction}) {
+        connect(a, &QAction::triggered, this, [this, a]() {
+            emit actionTriggered(a->data().toString());
+        });
+    }
+
     m_languageMenu = m_trayMenu->addMenu(QString());
     m_languageActionGroup = new QActionGroup(this);
     m_languageActionGroup->setExclusive(true);
@@ -177,6 +192,11 @@ void TrayController::retranslate()
     m_petMenu->setTitle(tr("Pet"));
     m_alwaysOnTopAction->setText(tr("Always on Top"));
     m_settingsAction->setText(tr("Pet Settings"));
+    m_actionMenu->setTitle(tr("Action"));
+    m_idleAction->setText(tr("Idle"));
+    m_happyAction->setText(tr("Happy"));
+    m_sleepyAction->setText(tr("Sleepy"));
+    m_draggingAction->setText(tr("Dragging"));
     m_languageMenu->setTitle(tr("Language"));
     m_systemLanguageAction->setText(tr("System"));
     m_englishLanguageAction->setText(tr("English"));

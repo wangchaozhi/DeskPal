@@ -655,6 +655,10 @@
         <translation>宠物</translation>
     </message>
     <message>
+        <source>Action</source>
+        <translation>动作</translation>
+    </message>
+    <message>
         <source>Language</source>
         <translation>语言</translation>
     </message>

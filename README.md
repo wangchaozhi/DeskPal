@@ -17,9 +17,28 @@ This project uses Qt 6, Qt Quick, and Qt Widgets:
 - Build system: CMake
 - C++ standard: C++20
 - Native integration: system tray and settings via C++
-- Runtime language switching: system, English, and Simplified Chinese
+- Runtime language switching: system, English, Simplified Chinese, and Japanese
 
-See `docs/desktop-pet-tech-plan.md` for the desktop pet technical plan.
+## Pet System
+
+- Settings panel: tray menu → `Pet Settings`. Visual editing of `Profile` / `2D Settings` / `3D Stage`,
+  with live preview that mirrors `view3d` changes onto the desktop pet.
+- Pet packs live under `assets/pets/<id>/pet.json`. `view3d` (3D camera/light/transform) and
+  `pet2d.fps` (PNG sequence frame rate) sit in nested blocks; the loader still accepts legacy
+  top-level `fps` for backward compatibility.
+- GLB/GLTF assets are loaded at runtime via `QtQuick3D.AssetUtils.RuntimeLoader` and
+  the Timeline animation whose `objectName` matches the `animations` map is enabled.
+- The `Generate Sample` button installs ready-to-edit copies of `sample_svg_2d` and
+  `sample_quick3d` into the writable pets folder.
+- `New Pet` initializes from a sample template so new pets ship with working resources
+  instead of empty fields.
+- Each source/action field has a `…` button that copies a selected file or folder into
+  the pet directory and fills in the relative path.
+- Validation distinguishes errors (missing files, out-of-range sizes, mismatched
+  extensions) from warnings (fields not configured yet, unknown action references).
+
+See `docs/pet-replacement-system.md` for the full pet system reference, and
+`docs/desktop-pet-tech-plan.md` for the broader technical plan.
 
 ## Build
 

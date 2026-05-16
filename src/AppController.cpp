@@ -256,6 +256,15 @@ AppController::AppController(QObject *parent)
     connect(m_tray, &TrayController::petChanged, this, &AppController::setCurrentPetId);
     connect(m_tray, &TrayController::settingsRequested, this, &AppController::settingsRequested);
     connect(m_tray, &TrayController::quitRequested, this, &AppController::quit);
+    connect(m_tray, &TrayController::actionTriggered, this, [this](const QString &action) {
+        if (action == QStringLiteral("dragging")) {
+            m_actions->triggerAction(action, 1500);
+        } else if (action == QStringLiteral("idle")) {
+            m_actions->triggerAction(action, 0);
+        } else {
+            m_actions->triggerAction(action, 1800);
+        }
+    });
     connect(m_actions, &ActionController::currentActionChanged, this, &AppController::petActionChanged);
 
     applyPetToActionController();
